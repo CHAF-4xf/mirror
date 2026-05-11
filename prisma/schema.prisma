@@ -1,0 +1,191 @@
+// Customer Voice Mirror — Database Schema
+// Mirrors TypeScript types in /types/index.ts
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================================
+// RUN
+// ============================================================
+
+model Run {
+  id              String     @id @default(cuid())
+  url             String
+  companyName     String?
+  companyDomain   String
+  status          RunStatus  @default(PENDING)
+  createdAt       DateTime   @default(now())
+  completedAt     DateTime?
+  error           String?
+  promptVersion   String     @default("1.0.0")
+  totalCostUsd    Float      @default(0)
+  totalLatencyMs  Int        @default(0)
+
+  sources    Source[]
+  themes     Theme[]
+  memo       Memo?
+  agentRuns  AgentRun[]
+
+  @@index([createdAt])
+  @@index([companyDomain])
+}
+
+enum RunStatus {
+  PENDING
+  SCRAPING
+  EXTRACTING
+  SYNTHESIZING
+  RENDERING
+  COMPLETE
+  FAILED
+}
+
+// ============================================================
+// SOURCE
+// ============================================================
+
+model Source {
+  id              String           @id @default(cuid())
+  runId           String
+  type            SourceType
+  url             String
+  title           String?
+  author          String?
+  authorContext   String?
+  publishedAt     DateTime?
+  capturedAt      DateTime         @default(now())
+  rawText         String
+  reliability     SourceReliability
+  metadata        Json
+
+  run             Run              @relation(fields: [runId], references: [id], onDelete: Cascade)
+  verbatimQuotes  VerbatimQuote[]
+
+  @@index([runId])
+  @@index([type])
+}
+
+enum SourceType {
+  CUSTOMER_STORY
+  REDDIT_POST
+  REDDIT_COMMENT
+  X_MENTION
+  TRUSTPILOT_REVIEW
+  OTHER_REVIEW
+  THIRD_PARTY_REVIEW
+}
+
+enum SourceReliability {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+// ============================================================
+// THEME
+// ============================================================
+
+model Theme {
+  id                   String          @id @default(cuid())
+  runId                String
+  category             ThemeCategory
+  statement            String
+  sourceCount          Int
+  weightedConfidence   Float
+
+  run             Run             @relation(fields: [runId], references: [id], onDelete: Cascade)
+  verbatimQuotes  VerbatimQuote[]
+
+  @@index([runId])
+  @@index([category])
+}
+
+enum ThemeCategory {
+  JOB_TO_BE_DONE
+  LOVE
+  FRUSTRATION
+  WISH
+  CHURN_RISK
+  COMPETITIVE_REFERENCE
+  CONTRADICTION
+}
+
+// ============================================================
+// VERBATIM QUOTE
+// ============================================================
+
+model VerbatimQuote {
+  id                  String            @id @default(cuid())
+  themeId             String
+  sourceId            String
+  text                String
+  sourceUrl           String
+  sourceReliability   SourceReliability
+
+  theme   Theme   @relation(fields: [themeId], references: [id], onDelete: Cascade)
+  source  Source  @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@index([themeId])
+  @@index([sourceId])
+}
+
+// ============================================================
+// MEMO
+// ============================================================
+
+model Memo {
+  id                String   @id @default(cuid())
+  runId             String   @unique
+  companyName       String
+  generatedAt       DateTime @default(now())
+  promptVersion     String
+  contentJson       Json
+  renderedMarkdown  String
+
+  run  Run  @relation(fields: [runId], references: [id], onDelete: Cascade)
+}
+
+// ============================================================
+// AGENT RUN
+// ============================================================
+
+model AgentRun {
+  id            String       @id @default(cuid())
+  runId         String
+  agentName     AgentName
+  state         AgentState   @default(PENDING)
+  message       String       @default("")
+  progress      Float?
+  startedAt     DateTime?
+  completedAt   DateTime?
+  costUsd       Float        @default(0)
+  latencyMs     Int          @default(0)
+  errorDetail   String?
+  inputHash     String?
+  outputRef     String?
+
+  run  Run  @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@index([runId])
+  @@index([agentName, state])
+}
+
+enum AgentName {
+  SCRAPER
+  EXTRACTOR
+  SYNTHESIZER
+  RENDERER
+}
+
+enum AgentState {
+  PENDING
+  RUNNING
+  COMPLETE
+  FAILED
+  SKIPPED
+}
