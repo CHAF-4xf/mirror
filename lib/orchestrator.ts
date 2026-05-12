@@ -1,6 +1,5 @@
-import type { AgentName, RunStatus } from '@prisma/client';
 import { Prisma } from '@prisma/client';
-import type { MemoDTO, SourceDTO, ThemeDTO } from '@/types';
+import type { AgentName, MemoDTO, RunStatus, SourceDTO, ThemeDTO } from '@/types';
 import { prisma } from './prisma';
 import { scrapeCustomerStories } from './scraper/customer-stories';
 import { scrapeReddit } from './scraper/reddit';

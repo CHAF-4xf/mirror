@@ -1,4 +1,4 @@
-import type { AgentName, AgentState, RunStatus } from '@prisma/client';
+import type { AgentName, AgentState, RunStatus } from '@/types';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
