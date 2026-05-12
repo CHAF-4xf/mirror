@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import type { Prisma } from '@prisma/client';
 import type { MemoDTO } from '@/types';
 import { gradeCoverage } from '@/types';
 import { prisma } from './prisma';
