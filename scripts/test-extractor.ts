@@ -87,7 +87,7 @@ async function main(): Promise<void> {
 
   if (result.spliceLog.length > 0) {
     const avgSubSpans =
-      result.spliceLog.reduce((acc, r) => acc + r.subSpanCount, 0) /
+      result.spliceLog.reduce((acc: number, r) => acc + r.subSpanCount, 0) /
       result.spliceLog.length;
     console.log('');
     console.log(

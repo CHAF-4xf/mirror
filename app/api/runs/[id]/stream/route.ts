@@ -94,11 +94,11 @@ export async function GET(request: Request, context: RouteContext) {
           }
 
           const agentCostUsd = run.agentRuns.reduce(
-            (sum, row) => sum + row.costUsd,
+            (sum: number, row) => sum + row.costUsd,
             0,
           );
           const agentLatencyMs = run.agentRuns.reduce(
-            (sum, row) => sum + row.latencyMs,
+            (sum: number, row) => sum + row.latencyMs,
             0,
           );
 

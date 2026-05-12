@@ -216,6 +216,9 @@ export function computeWeightedConfidence(
   quotes: { sourceReliability: SourceReliability }[]
 ): number {
   if (quotes.length === 0) return 0;
-  const sum = quotes.reduce((acc, q) => acc + RELIABILITY_WEIGHTS[q.sourceReliability], 0);
+  const sum = quotes.reduce(
+    (acc: number, q) => acc + RELIABILITY_WEIGHTS[q.sourceReliability],
+    0,
+  );
   return sum / quotes.length;
 }
