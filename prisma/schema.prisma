@@ -18,6 +18,7 @@ model Run {
   url             String
   companyName     String?
   companyDomain   String
+  demoSlug        String?    @unique
   status          RunStatus  @default(PENDING)
   createdAt       DateTime   @default(now())
   completedAt     DateTime?

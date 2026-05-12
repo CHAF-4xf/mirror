@@ -31,6 +31,7 @@ export interface Run {
   promptVersion: string;
   totalCostUsd: number;
   totalLatencyMs: number;
+  demoSlug?: string | null;
 }
 
 // ---------- SOURCES ----------

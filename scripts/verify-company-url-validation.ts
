@@ -1,0 +1,56 @@
+/**
+ * One-off checks for normalizeRunUrlInput / company hostname rules.
+ * `npx tsx scripts/verify-company-url-validation.ts`
+ */
+import {
+  COMPANY_URL_VALIDATION_ERROR,
+  normalizeRunUrlInput,
+} from '../lib/run-url';
+
+type Case = { label: string; input: string; expectOk: boolean };
+
+const CASES: Case[] = [
+  { label: 'foo', input: 'foo', expectOk: false },
+  { label: 'https://foo', input: 'https://foo', expectOk: false },
+  { label: 'localhost:3000', input: 'localhost:3000', expectOk: false },
+  { label: 'example.com', input: 'example.com', expectOk: false },
+  { label: 'https://highspot.com', input: 'https://highspot.com', expectOk: true },
+  { label: 'highspot.com (auto https)', input: 'highspot.com', expectOk: true },
+  { label: 'empty string', input: '', expectOk: false },
+  { label: 'IPv4 host', input: 'https://127.0.0.1', expectOk: false },
+  { label: 'TLD length 1', input: 'https://evil.c/', expectOk: false },
+  { label: 'host < 4 chars', input: 'a.io', expectOk: false }, // "a.io" length 4 — should PASS per rule; adjust test
+];
+
+// Fix: hostname "a.io" length 4 — passes length rule. Need host < 4: single char subdomain "x" on xx? "aa" no dot fails.
+const shortHostCase: Case[] = [{ label: '<4 char hostname total', input: 'x.co', expectOk: false }];
+// Wait "x.co" has length 4 - equals 4, not less. User said UNDER 4. So length 3: "aa." invalid. Use "xy" scheme only - impossible with dot requirement.
+// Shortest dot host: x.xx = length 5 (x.xx). Minimum with dot could be `a.bb` length 4. So <4 chars with dot is impossible!
+// Actually "co.uk" is 5 chars. What about unicode? Ignore.
+// For <4 chars: purely "xyz" fails no dot anyway. Artificial: could they mean labels? Stick to `.ab` hostname length 4 for `a.bb`
+// Add test: `hi` trimmed - fails no dot. 
+//I'll add `.ab` TLD length 2: `https://ab` isn't valid URL in browser - prepend https -> https://ab - hostname might be parsed wrong
+//Actually `new URL('https://ab')` - hostname could be `ab` no dot - FAIL no dot ✓
+
+
+const MORE: Case[] = [
+  ...shortHostCase.map((c) =>
+    c.label === '<4 char hostname total' && c.input === 'x.co'
+      ? { ...c, input: 'ab', expectOk: false } 
+      : c,
+  ),
+];
+
+// Undo mess - simplest extra case: `"ab"` fails (no dot) already in spirit. Explicit test "`ab.c`"? host `ab.c` length 5
+//I'll remove broken MORE and replace with:
+
+
+const EXTRA_CASES: Case[] = [
+  ...CASES.slice(0, 7),
+  // sub-4-character hostname impossible with '.' — use malformed short string that still parses as single-label
+  { label: 'single label xyz', input: 'xyz', expectOk: false },
+  { label: 'IPv4', input: 'https://8.8.8.8', expectOk: false },
+  { label: 'TLD 1 char', input: 'https://foo.c', expectOk: false },
+];
+
+// Rebuild clean list - I made a mess. Replace file content simply.

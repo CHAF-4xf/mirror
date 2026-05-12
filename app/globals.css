@@ -1,26 +1,58 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: dark;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  background: #0a0a0a;
+  color: #ffffff;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  min-height: 100vh;
+}
+
+/* Component-scoped pseudo-class styling — paired with the inline-styled
+   elements in app/page.tsx. Inline styles can't express :hover/:focus, so
+   the spec's hover and focus rules live here. Keep the prefix to avoid
+   accidental collisions with any future Tailwind class. */
+
+.mirror-card {
+  transition: border-color 150ms ease;
+}
+
+.mirror-card:hover {
+  border-color: #3a3a3a !important;
+}
+
+.mirror-input {
+  transition: border-color 150ms ease;
+}
+
+.mirror-input:focus {
+  outline: none;
+  border-color: #3a3a3a !important;
+}
+
+/* Memo viewer: hovers / first-heading margin (inline markdown can't express these). */
+[data-memo-theme="dark"] .memo-back-link:hover {
+  color: #ffffff !important;
+}
+[data-memo-theme="light"] .memo-back-link:hover {
+  color: #000000 !important;
+}
+
+.memo-md-root > h1:first-of-type {
+  margin-top: 0 !important;
+}
+
+[data-memo-theme="dark"] .memo-md-root a:hover,
+[data-memo-theme="light"] .memo-md-root a:hover {
+  text-decoration: underline;
 }
