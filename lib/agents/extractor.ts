@@ -322,7 +322,7 @@ function verifyAndNormalize(
     // "number of quote rows". Splice recovery may turn one spliced quote into
     // N rows from the same source — sourceCount must not inflate.
     const uniqueRefs = new Set(
-      verdict.quotes.map((q) => q.sourceTemporaryRef),
+      verdict.quotes.map((q: VerbatimQuoteDTO) => q.sourceTemporaryRef),
     );
     accepted.push({
       category: t.category,
@@ -357,7 +357,9 @@ function inspectTheme(
   if (!Array.isArray(theme.verbatimQuotes) || theme.verbatimQuotes.length < 2) {
     return { kind: 'reject', reason: 'theme has fewer than 2 quotes', diagnostics: null };
   }
-  const distinctRefs = new Set(theme.verbatimQuotes.map((q) => q.sourceTemporaryRef));
+  const distinctRefs = new Set(
+    theme.verbatimQuotes.map((q: VerbatimQuoteDTO) => q.sourceTemporaryRef),
+  );
   if (distinctRefs.size < 2) {
     return {
       kind: 'reject',
@@ -406,7 +408,9 @@ function inspectTheme(
   // Splice recovery may have expanded one source's contribution into N rows
   // but cannot introduce a new source. Recheck distinct sources just to be
   // explicit about the invariant.
-  const finalDistinctRefs = new Set(acceptedQuotes.map((q) => q.sourceTemporaryRef));
+  const finalDistinctRefs = new Set(
+    acceptedQuotes.map((q: VerbatimQuoteDTO) => q.sourceTemporaryRef),
+  );
   if (finalDistinctRefs.size < 2) {
     return {
       kind: 'reject',
@@ -448,7 +452,7 @@ function wordOverlapScore(quote: string, sourceText: string): number {
   const quoteWords = tokenizeWords(quote);
   if (quoteWords.length === 0) return 0;
   const sourceWords = new Set(tokenizeWords(sourceText));
-  const matched = quoteWords.filter((w) => sourceWords.has(w)).length;
+  const matched = quoteWords.filter((w: string) => sourceWords.has(w)).length;
   return matched / quoteWords.length;
 }
 
@@ -457,6 +461,6 @@ function tokenizeWords(s: string): string[] {
     .toLowerCase()
     .replace(/[^\p{L}\p{N}\s]+/gu, ' ')
     .split(/\s+/)
-    .filter((w) => w.length >= 2);
+    .filter((w: string) => w.length >= 2);
 }
 

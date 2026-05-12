@@ -1,6 +1,10 @@
 import Link from "next/link";
 import type { CSSProperties, ReactElement } from "react";
-import { headlineFindingFromJTBD, listDemoRuns } from "@/lib/demo-runs";
+import {
+  type DemoRunListRow,
+  headlineFindingFromJTBD,
+  listDemoRuns,
+} from "@/lib/demo-runs";
 import { LANDING_COLORS as COLORS, eyebrowStyle } from "@/lib/landing-theme";
 import type { MemoDTO } from "@/types";
 import { BetaAnalyzeSection } from "./beta-analyze-section";
@@ -129,7 +133,7 @@ export default async function HomePage() {
           </p>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {demoRows.map((row) => {
+            {demoRows.map((row: DemoRunListRow) => {
               const slug = row.demoSlug;
               if (!slug) return null;
 

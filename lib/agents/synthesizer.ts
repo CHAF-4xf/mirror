@@ -581,20 +581,22 @@ function processSection(
   failures: SynthesisFailure[],
   spliceLog: SynthesisSpliceRecord[],
 ): { themes: ThemeDTO[]; summary: string } {
-  const processedThemes: ThemeDTO[] = section.themes.map((theme, idx) => {
-    const location = `${sectionName}.themes[${idx}](${theme.category})`;
-    const processedQuotes = processQuoteList(
-      theme.verbatimQuotes,
-      byRef,
-      location,
-      failures,
-      spliceLog,
-    );
-    return {
-      ...theme,
-      verbatimQuotes: processedQuotes,
-    };
-  });
+  const processedThemes: ThemeDTO[] = section.themes.map<ThemeDTO>(
+    (theme: ThemeDTO, idx: number) => {
+      const location = `${sectionName}.themes[${idx}](${theme.category})`;
+      const processedQuotes = processQuoteList(
+        theme.verbatimQuotes,
+        byRef,
+        location,
+        failures,
+        spliceLog,
+      );
+      return {
+        ...theme,
+        verbatimQuotes: processedQuotes,
+      };
+    },
+  );
   return { themes: processedThemes, summary: section.summary };
 }
 

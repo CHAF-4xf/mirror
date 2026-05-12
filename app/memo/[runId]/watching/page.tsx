@@ -198,59 +198,61 @@ export default function WatchingPage(props: PageProps) {
           overflow: "hidden",
         }}
       >
-        {payload.agents.map((agent, index) => {
-          const badge = STATE_STYLES[agent.state];
-          return (
-            <div
-              key={agent.name}
-              style={{
-                display: "grid",
-                gridTemplateColumns: "140px 112px 1fr",
-                gap: 16,
-                alignItems: "center",
-                padding: "16px 20px",
-                borderTop:
-                  index === 0 ? "none" : `0.5px solid ${COLORS.border}`,
-              }}
-            >
-              <span
+        {payload.agents.map(
+          (agent: StreamPayload["agents"][number], index: number) => {
+            const badge = STATE_STYLES[agent.state];
+            return (
+              <div
+                key={agent.name}
                 style={{
-                  fontSize: 14,
-                  fontWeight: 500,
-                  color: COLORS.text,
+                  display: "grid",
+                  gridTemplateColumns: "140px 112px 1fr",
+                  gap: 16,
+                  alignItems: "center",
+                  padding: "16px 20px",
+                  borderTop:
+                    index === 0 ? "none" : `0.5px solid ${COLORS.border}`,
                 }}
               >
-                {formatAgentName(agent.name)}
-              </span>
-              <span
-                style={{
-                  justifySelf: "start",
-                  padding: "3px 8px",
-                  borderRadius: 4,
-                  fontSize: 11,
-                  letterSpacing: "0.03em",
-                  fontWeight: 500,
-                  color: badge.color,
-                  background: badge.background,
-                  animation: badge.pulse
-                    ? "mirror-progress-pulse 1.4s ease-in-out infinite"
-                    : undefined,
-                }}
-              >
-                {agent.state}
-              </span>
-              <span
-                style={{
-                  fontSize: 13,
-                  color: agent.message ? COLORS.textMuted : COLORS.textFaint,
-                  lineHeight: 1.5,
-                }}
-              >
-                {agent.message || defaultAgentMessage(agent.state)}
-              </span>
-            </div>
-          );
-        })}
+                <span
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 500,
+                    color: COLORS.text,
+                  }}
+                >
+                  {formatAgentName(agent.name)}
+                </span>
+                <span
+                  style={{
+                    justifySelf: "start",
+                    padding: "3px 8px",
+                    borderRadius: 4,
+                    fontSize: 11,
+                    letterSpacing: "0.03em",
+                    fontWeight: 500,
+                    color: badge.color,
+                    background: badge.background,
+                    animation: badge.pulse
+                      ? "mirror-progress-pulse 1.4s ease-in-out infinite"
+                      : undefined,
+                  }}
+                >
+                  {agent.state}
+                </span>
+                <span
+                  style={{
+                    fontSize: 13,
+                    color: agent.message ? COLORS.textMuted : COLORS.textFaint,
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {agent.message || defaultAgentMessage(agent.state)}
+                </span>
+              </div>
+            );
+          },
+        )}
       </div>
 
       <p

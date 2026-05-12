@@ -402,7 +402,7 @@ export function MemoViewer({ markdown, meta }: MemoViewerProps) {
               },
               { label: 'COST', node: costFormatted },
             ] as const
-          ).map(({ label, node }) => (
+          ).map(({ label, node }: { label: string; node: ReactNode }) => (
             <div key={label} style={{ flex: '0 0 auto', minHeight: '2.75rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
               <div
                 style={{

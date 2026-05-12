@@ -132,8 +132,8 @@ export async function scrapeReddit(
 
   console.log(
     `${LOG_PREFIX} produced ${sources.length} source(s) ` +
-      `(${sources.filter((s) => s.type === 'REDDIT_POST').length} posts, ` +
-      `${sources.filter((s) => s.type === 'REDDIT_COMMENT').length} comments)`,
+      `(${sources.filter((s: Omit<SourceDTO, 'temporaryRef'>) => s.type === 'REDDIT_POST').length} posts, ` +
+      `${sources.filter((s: Omit<SourceDTO, 'temporaryRef'>) => s.type === 'REDDIT_COMMENT').length} comments)`,
   );
 
   return sources.map<SourceDTO>((s, i) => ({

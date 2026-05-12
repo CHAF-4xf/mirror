@@ -106,8 +106,8 @@ export function trySpliceRecovery(
 ): string[] | null {
   const fragments = quoteText
     .split(/\s{2,}|\n+/)
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0);
+    .map((s: string) => s.trim())
+    .filter((s: string) => s.length > 0);
   if (fragments.length < 2) return null;
 
   const normalizedSource = normalizeForQuoteMatch(sourceText);

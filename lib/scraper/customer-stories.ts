@@ -96,12 +96,14 @@ export async function scrapeCustomerStories(
         if (!resp || resp.status() >= 400) continue;
         await waitForRenderedContent(page);
         const finalUrl = page.url();
-        const detail = (await extractTestimonials(page, finalUrl)).map((t) => ({
-          ...t,
-          // Detail-page testimonials reference the detail page itself unless they
-          // explicitly carry their own deeper link.
-          storyUrl: t.storyUrl ?? finalUrl,
-        }));
+        const detail = (await extractTestimonials(page, finalUrl)).map(
+          (t: RawTestimonial) => ({
+            ...t,
+            // Detail-page testimonials reference the detail page itself unless they
+            // explicitly carry their own deeper link.
+            storyUrl: t.storyUrl ?? finalUrl,
+          }),
+        );
         testimonials = dedupeByQuote([...testimonials, ...detail]);
       } catch (err) {
         console.warn(
@@ -110,7 +112,7 @@ export async function scrapeCustomerStories(
       }
     }
 
-    return testimonials.map((t, i) =>
+    return testimonials.map<SourceDTO>((t: RawTestimonial, i: number) =>
       toSourceDTO(t, i + 1, temporaryRefPrefix, landed.url),
     );
   } catch (err) {
@@ -207,8 +209,8 @@ async function extractTestimonials(
         if (!s) return { name: null, company: null, role: null };
         const parts = s
           .split(/\s*[,|·•–—]\s*|\s+at\s+|\s+of\s+/i)
-          .map((p) => p.trim())
-          .filter(Boolean);
+          .map((p: string) => p.trim())
+          .filter((p: string) => Boolean(p));
         if (parts.length === 0) return { name: null, company: null, role: null };
         if (parts.length === 1) {
           const single = parts[0];
@@ -383,8 +385,8 @@ async function collectStoryLinksFromIndex(
   const indexPath = new URL(indexUrl).pathname.replace(/\/$/, '');
   const hrefs = await page.evaluate(() =>
     Array.from(document.querySelectorAll('a[href]'))
-      .map((a) => (a as HTMLAnchorElement).href)
-      .filter((href) => typeof href === 'string' && href.length > 0),
+      .map((a: Element) => (a as HTMLAnchorElement).href)
+      .filter((href: string) => typeof href === 'string' && href.length > 0),
   );
   const urls = new Set<string>();
   for (const href of hrefs) {
@@ -443,7 +445,9 @@ function toSourceDTO(
 function deriveSlug(url: string): string {
   try {
     const u = new URL(url);
-    const segments = u.pathname.split('/').filter(Boolean);
+    const segments = u.pathname
+      .split('/')
+      .filter((segment: string) => Boolean(segment));
     return segments[segments.length - 1] ?? u.host;
   } catch {
     return 'unknown';

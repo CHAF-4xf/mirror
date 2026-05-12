@@ -153,8 +153,8 @@ export async function scrapeThirdPartyReviews(
 
   console.log(
     `${LOG_PREFIX} produced ${sources.length} source(s) ` +
-      `(${sources.filter((s) => s.type === 'OTHER_REVIEW').length} aggregator, ` +
-      `${sources.filter((s) => s.type === 'THIRD_PARTY_REVIEW').length} third-party)`,
+      `(${sources.filter((s: Omit<SourceDTO, 'temporaryRef'>) => s.type === 'OTHER_REVIEW').length} aggregator, ` +
+      `${sources.filter((s: Omit<SourceDTO, 'temporaryRef'>) => s.type === 'THIRD_PARTY_REVIEW').length} third-party)`,
   );
 
   return sources.map<SourceDTO>((s, i) => ({
@@ -290,8 +290,8 @@ function derivePublicationName(host: string): string {
   if (!stem) return host;
   return stem
     .split('-')
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .filter((part: string) => Boolean(part))
+    .map((part: string) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(' ');
 }
 

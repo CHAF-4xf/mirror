@@ -46,7 +46,7 @@ function isProbablyIpv4Hostname(hostname: string): boolean {
   if (parts.length !== 4) {
     return false;
   }
-  return parts.every((part) => {
+  return parts.every((part: string) => {
     if (!/^\d{1,3}$/.test(part)) {
       return false;
     }

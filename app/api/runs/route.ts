@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { MemoDTO } from '@/types';
 import {
+  type DemoRunListRow,
   headlineFindingFromJTBD,
   listDemoRuns,
 } from '@/lib/demo-runs';
@@ -14,7 +15,7 @@ import {
 export async function GET() {
   const rows = await listDemoRuns();
 
-  const runs = rows.map((r) => {
+  const runs = rows.map((r: DemoRunListRow) => {
     const memoJson = r.memo?.contentJson as Partial<MemoDTO> | undefined;
     const headlineFinding = headlineFindingFromJTBD(
       memoJson?.jobToBeDone?.statement,

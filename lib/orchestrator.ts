@@ -1,5 +1,12 @@
 import { Prisma } from '@prisma/client';
-import type { AgentName, MemoDTO, RunStatus, SourceDTO, ThemeDTO } from '@/types';
+import type {
+  AgentName,
+  MemoDTO,
+  RunStatus,
+  SourceDTO,
+  ThemeDTO,
+  VerbatimQuoteDTO,
+} from '@/types';
 import { prisma } from './prisma';
 import { scrapeCustomerStories } from './scraper/customer-stories';
 import { scrapeReddit } from './scraper/reddit';
@@ -299,7 +306,7 @@ async function persistThemes(
   sourceIdMap: Map<string, string>,
 ): Promise<void> {
   for (const theme of themes) {
-    const quoteRows = theme.verbatimQuotes.map((q) => {
+    const quoteRows = theme.verbatimQuotes.map((q: VerbatimQuoteDTO) => {
       const sourceId = sourceIdMap.get(q.sourceTemporaryRef);
       if (!sourceId) {
         throw new Error(

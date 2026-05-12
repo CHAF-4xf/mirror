@@ -28,6 +28,14 @@ type StreamPayload = {
   error: string | null;
 };
 
+type AgentRunStreamRow = {
+  agentName: AgentName;
+  state: AgentState;
+  message: string;
+  latencyMs: number;
+  costUsd: number;
+};
+
 type RouteContext = {
   params: Promise<{ id: string }>;
 };
@@ -93,12 +101,12 @@ export async function GET(request: Request, context: RouteContext) {
             return;
           }
 
-          const agentCostUsd = run.agentRuns.reduce(
-            (sum: number, row) => sum + row.costUsd,
+          const agentCostUsd = run.agentRuns.reduce<number>(
+            (sum: number, row: AgentRunStreamRow) => sum + row.costUsd,
             0,
           );
-          const agentLatencyMs = run.agentRuns.reduce(
-            (sum: number, row) => sum + row.latencyMs,
+          const agentLatencyMs = run.agentRuns.reduce<number>(
+            (sum: number, row: AgentRunStreamRow) => sum + row.latencyMs,
             0,
           );
 
@@ -145,21 +153,13 @@ export async function GET(request: Request, context: RouteContext) {
   });
 }
 
-function buildAgentStates(
-  rows: Array<{
-    agentName: AgentName;
-    state: AgentState;
-    message: string;
-    latencyMs: number;
-    costUsd: number;
-  }>,
-): StreamPayload['agents'] {
+function buildAgentStates(rows: AgentRunStreamRow[]): StreamPayload['agents'] {
   const latestByAgent = new Map<AgentName, (typeof rows)[number]>();
   for (const row of rows) {
     latestByAgent.set(row.agentName, row);
   }
 
-  return AGENT_ORDER.map((name) => {
+  return AGENT_ORDER.map<StreamPayload['agents'][number]>((name: AgentName) => {
     const row = latestByAgent.get(name);
     return {
       name,

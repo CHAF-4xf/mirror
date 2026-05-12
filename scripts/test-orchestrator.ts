@@ -145,15 +145,17 @@ async function main(): Promise<void> {
     {
       name: 'All four AgentRun records present',
       pass:
-        agentRuns.filter((a) =>
+        agentRuns.filter((a: (typeof agentRuns)[number]) =>
           ['SCRAPER', 'EXTRACTOR', 'SYNTHESIZER', 'RENDERER'].includes(a.agentName),
         ).length === 4,
-      detail: agentRuns.map((a) => a.agentName).join(', '),
+      detail: agentRuns.map((a: (typeof agentRuns)[number]) => a.agentName).join(', '),
     },
     {
       name: 'All AgentRuns reached COMPLETE state',
-      pass: agentRuns.every((a) => a.state === 'COMPLETE'),
-      detail: agentRuns.map((a) => `${a.agentName}=${a.state}`).join(', '),
+      pass: agentRuns.every((a: (typeof agentRuns)[number]) => a.state === 'COMPLETE'),
+      detail: agentRuns
+        .map((a: (typeof agentRuns)[number]) => `${a.agentName}=${a.state}`)
+        .join(', '),
     },
   ];
   let allPass = true;
