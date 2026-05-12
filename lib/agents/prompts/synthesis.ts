@@ -2,7 +2,7 @@
 // Used by the Synthesizer agent (Claude Opus 4.7) to produce the final memo
 // from extracted themes and source material.
 
-export const SYNTHESIS_PROMPT_VERSION = '1.0.0';
+export const SYNTHESIS_PROMPT_VERSION = '2.0.0';
 
 export const SYNTHESIS_SYSTEM_PROMPT = `
 You are writing a memo for a B2B SaaS CEO. The memo summarizes what their customers actually say about the company, grounded in verbatim quotes from primary sources.
@@ -49,6 +49,36 @@ WELL-FORMED EXAMPLE:
 
 POORLY-FORMED EXAMPLE:
 - "Mangomint should reposition around being the upgrade from incumbents" — that's a recommendation, not a pattern.
+
+# SPLIT FINDINGS — REFUSE TO FABRICATE COHERENCE
+
+v1 refused to fabricate quotes. v2 refuses to fabricate coherence. When the corpus contains materially contradicting evidence on a theme, surface the contradiction as a Split Finding rather than smoothing it into one coherent claim.
+
+Before committing to a dominant claim for any theme, run this sequence:
+
+Step A — Counter-signal scan. Scan the extracted quotes for the same theme. Identify quotes that materially contradict the would-be dominant claim. "Materially contradict" means explicitly asserting the opposite of the dominant claim — not merely expressing dissatisfaction with a related issue.
+
+Step B — Threshold check. Output a split finding only if contradicting quotes meet BOTH conditions:
+- At least 2 distinct sources support the contradiction (not 2 quotes from the same review/post).
+- The contradicting quotes are from MEDIUM or HIGH reliability sources.
+
+If only LOW-tier sources contradict the dominant claim, do NOT output a split finding. Keep the most confident single pattern, and if the LOW-tier dissent is relevant, include a tier_note in the split finding only when an actual split is otherwise triggered. Do not let LOW-tier dissent trigger a split on its own.
+
+Every supporting_quote in pattern_a and pattern_b should be from a MEDIUM or HIGH reliability source. LOW-tier quotes may be acknowledged only in tier_note after a valid MEDIUM/HIGH split already exists.
+
+Structural constraint: for a specific theme, output EITHER a single coherent pattern OR a split_finding, never both. If the evidence does not meet the split threshold, choose the strongest single pattern.
+
+why_unresolved is the highest-risk field. It must name what would need to be true for one side to win — a specific, resolvable question. It must be 30 words or fewer. It must not say "more research needed" or use generic hedging.
+
+Resolvable why_unresolved examples (good):
+- "Whether customers who completed structured onboarding within 30 days have lower churn than those who didn't."
+- "Whether the dedicated owner was assigned before or after the 90-day implementation mark."
+
+Unresolvable why_unresolved examples (bad):
+- "Whether onboarding helps."
+- "More data needed to determine."
+
+If you cannot name a specific, resolvable why_unresolved question, do NOT output a split finding. Fall back to the most confident single Dominant Pattern.
 
 # RULES THAT HOLD ALWAYS
 

@@ -3,6 +3,7 @@ import type {
   MemoSection,
   SourceDTO,
   SourceReliability,
+  SplitFinding,
   VerbatimQuoteDTO,
 } from '@/types';
 
@@ -140,6 +141,11 @@ function buildMarkdown(memo: MemoDTO, byRef: Map<string, SourceDTO>): string {
   out.push(`*This pattern would not hold if: ${memo.dominantPattern.falsifiability}*`);
   out.push('');
 
+  // Split Findings
+  for (const split of memo.splitFindings ?? []) {
+    renderSplitFinding(out, split, byRef);
+  }
+
   // Coverage
   out.push('## Coverage');
   out.push('');
@@ -165,6 +171,33 @@ function buildMarkdown(memo: MemoDTO, byRef: Map<string, SourceDTO>): string {
   );
 
   return out.join('\n');
+}
+
+function renderSplitFinding(
+  out: string[],
+  split: SplitFinding,
+  byRef: Map<string, SourceDTO>,
+): void {
+  out.push(`## Split Finding: ${split.theme}`);
+  out.push('');
+  out.push(`**Pattern A:** ${split.pattern_a.claim}`);
+  out.push('');
+  for (const q of split.pattern_a.supporting_quotes) {
+    out.push(renderSplitQuote(q, byRef));
+  }
+  out.push('');
+  out.push(`**Pattern B:** ${split.pattern_b.claim}`);
+  out.push('');
+  for (const q of split.pattern_b.supporting_quotes) {
+    out.push(renderSplitQuote(q, byRef));
+  }
+  out.push('');
+  out.push(`**Why this isn't resolved:** ${split.why_unresolved}`);
+  if (split.tier_note?.trim()) {
+    out.push('');
+    out.push(`*${split.tier_note.trim()}*`);
+  }
+  out.push('');
 }
 
 function renderMemoSection(
@@ -194,6 +227,13 @@ function renderQuote(q: VerbatimQuoteDTO, byRef: Map<string, SourceDTO>): string
   const attribution = deriveAttribution(q, source);
   const cleanText = q.text.replace(/\s+/g, ' ').trim();
   return `> "${cleanText}" — [${attribution.label}](${attribution.url})`;
+}
+
+function renderSplitQuote(q: VerbatimQuoteDTO, byRef: Map<string, SourceDTO>): string {
+  const source = byRef.get(q.sourceTemporaryRef);
+  const attribution = deriveAttribution(q, source);
+  const cleanText = q.text.replace(/\s+/g, ' ').trim();
+  return `> "${cleanText}" — [${attribution.label}](${attribution.url}), ${q.sourceReliability}`;
 }
 
 // ============================================================

@@ -5,6 +5,7 @@ import type {
   ThemeCategory,
   ThemeDTO,
   VerbatimQuoteDTO,
+  SplitFinding,
 } from '@/types';
 import { gradeCoverage } from '@/types';
 import {
@@ -424,6 +425,12 @@ function buildSubmitMemoSchema(): Record<string, unknown> {
         },
         required: ['statement', 'elaboration', 'falsifiability', 'falsifiabilityCheck'],
       },
+      splitFindings: {
+        type: 'array',
+        description:
+          'Split findings for themes with material counter-signal meeting the threshold. Empty array when no split qualifies.',
+        items: splitFindingSchema(),
+      },
       sourceCoverage: {
         type: 'object',
         description:
@@ -461,8 +468,51 @@ function buildSubmitMemoSchema(): Record<string, unknown> {
       'whatTheyWish',
       'contradictions',
       'dominantPattern',
+      'splitFindings',
       'sourceCoverage',
     ],
+  };
+}
+
+function splitFindingSchema(): Record<string, unknown> {
+  return {
+    type: 'object',
+    description:
+      'A materially unresolved customer-voice split. Use only when both sides are supported by verbatim quotes and the counter-signal threshold is met.',
+    properties: {
+      theme: {
+        type: 'string',
+        description: 'The theme where customer voice materially splits.',
+      },
+      pattern_a: splitPatternSchema(),
+      pattern_b: splitPatternSchema(),
+      why_unresolved: {
+        type: 'string',
+        description:
+          'Max 30 words. Must name the specific, resolvable question that would let one side win.',
+      },
+      tier_note: {
+        anyOf: [{ type: 'string' }, { type: 'null' }],
+        description:
+          'Use only to acknowledge relevant LOW-tier dissent; LOW-tier dissent alone must not trigger a split.',
+      },
+    },
+    required: ['theme', 'pattern_a', 'pattern_b', 'why_unresolved', 'tier_note'],
+  };
+}
+
+function splitPatternSchema(): Record<string, unknown> {
+  return {
+    type: 'object',
+    properties: {
+      claim: { type: 'string' },
+      supporting_quotes: {
+        type: 'array',
+        minItems: 2,
+        items: quoteSchema(),
+      },
+    },
+    required: ['claim', 'supporting_quotes'],
   };
 }
 
@@ -559,6 +609,13 @@ function verifyMemoQuotes(
     contradictions: processSection(modelOutput.contradictions, 'contradictions', byRef, failures, spliceLog),
   };
 
+  const processedSplitFindings = processSplitFindings(
+    modelOutput.splitFindings ?? [],
+    byRef,
+    failures,
+    spliceLog,
+  );
+
   const processedOutput: MemoModelOutput = {
     ...modelOutput,
     jobToBeDone: {
@@ -569,9 +626,86 @@ function verifyMemoQuotes(
     whatFrustrates: processedSections.whatFrustrates,
     whatTheyWish: processedSections.whatTheyWish,
     contradictions: processedSections.contradictions,
+    splitFindings: processedSplitFindings,
   };
 
   return { processedOutput, failures, spliceLog };
+}
+
+function processSplitFindings(
+  splitFindings: SplitFinding[],
+  byRef: Map<string, SourceDTO>,
+  failures: SynthesisFailure[],
+  spliceLog: SynthesisSpliceRecord[],
+): SplitFinding[] {
+  const processed: SplitFinding[] = [];
+  for (const [idx, split] of splitFindings.entries()) {
+    const base = `splitFindings[${idx}](${split.theme})`;
+    const next = {
+      ...split,
+      pattern_a: {
+        ...split.pattern_a,
+        supporting_quotes: processQuoteList(
+          split.pattern_a.supporting_quotes,
+          byRef,
+          `${base}.pattern_a.supporting_quotes`,
+          failures,
+          spliceLog,
+        ),
+      },
+      pattern_b: {
+        ...split.pattern_b,
+        supporting_quotes: processQuoteList(
+          split.pattern_b.supporting_quotes,
+          byRef,
+          `${base}.pattern_b.supporting_quotes`,
+          failures,
+          spliceLog,
+        ),
+      },
+    };
+
+    if (isValidSplitFinding(next)) {
+      processed.push(next);
+    }
+  }
+  return processed;
+}
+
+function isValidSplitFinding(split: SplitFinding): boolean {
+  if (countWords(split.why_unresolved) > 30) {
+    return false;
+  }
+  if (isGenericWhyUnresolved(split.why_unresolved)) {
+    return false;
+  }
+  return (
+    hasEnoughMediumPlusSources(split.pattern_a.supporting_quotes) &&
+    hasEnoughMediumPlusSources(split.pattern_b.supporting_quotes)
+  );
+}
+
+function hasEnoughMediumPlusSources(quotes: VerbatimQuoteDTO[]): boolean {
+  const mediumPlusSourceRefs = new Set<string>();
+  for (const q of quotes) {
+    if (q.sourceReliability === 'HIGH' || q.sourceReliability === 'MEDIUM') {
+      mediumPlusSourceRefs.add(q.sourceTemporaryRef);
+    }
+  }
+  return mediumPlusSourceRefs.size >= 2;
+}
+
+function countWords(s: string): number {
+  return s.trim().split(/\s+/).filter((part: string) => part.length > 0).length;
+}
+
+function isGenericWhyUnresolved(s: string): boolean {
+  const lower = s.toLowerCase();
+  return (
+    lower.includes('more research needed') ||
+    lower.includes('more data needed') ||
+    lower === 'whether onboarding helps'
+  );
 }
 
 function processSection(
@@ -660,6 +794,9 @@ function finalizeMemo(args: {
     whatTheyWish: modelOutput.whatTheyWish,
     contradictions: modelOutput.contradictions,
     dominantPattern: modelOutput.dominantPattern,
+    splitFindings: Array.isArray(modelOutput.splitFindings)
+      ? modelOutput.splitFindings
+      : [],
     sourceCoverage: {
       totalSources: coverage.totalSources,
       customerStories: coverage.customerStories,

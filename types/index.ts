@@ -119,6 +119,21 @@ export interface MemoSection {
   summary: string;
 }
 
+export interface SplitFinding {
+  theme: string;
+  pattern_a: {
+    claim: string;
+    supporting_quotes: VerbatimQuoteDTO[];
+  };
+  pattern_b: {
+    claim: string;
+    supporting_quotes: VerbatimQuoteDTO[];
+  };
+  /** Max 30 words. Must name a specific, resolvable question. */
+  why_unresolved: string;
+  tier_note: string | null;
+}
+
 export interface MemoDTO {
   companyName: string;
   generatedAt: Date;
@@ -141,6 +156,8 @@ export interface MemoDTO {
     falsifiability: string;
     falsifiabilityCheck: 'SPECIFIC' | 'GENERIC';
   };
+
+  splitFindings?: SplitFinding[];
 
   sourceCoverage: {
     totalSources: number;
