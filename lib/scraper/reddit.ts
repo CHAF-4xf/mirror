@@ -95,8 +95,15 @@ export async function scrapeReddit(
 
   let posts: NormalizedPost[] = [];
   try {
-    posts = await searchPosts(trimmed);
-    console.log(`${LOG_PREFIX} search returned ${posts.length} post(s) for "${trimmed}"`);
+    const queries = [
+      `"${trimmed}" SaaS`,
+      `"${trimmed}" software review`,
+    ];
+    posts = await searchPosts(queries);
+    console.log(
+      `${LOG_PREFIX} search returned ${posts.length} post(s) for "${trimmed}" ` +
+        `across ${queries.length} disambiguated query(s)`,
+    );
   } catch (err) {
     console.error(`${LOG_PREFIX} search failed: ${(err as Error).message}`);
   }
@@ -142,9 +149,27 @@ export async function scrapeReddit(
   }));
 }
 
-async function searchPosts(query: string): Promise<NormalizedPost[]> {
+async function searchPosts(queries: string[]): Promise<NormalizedPost[]> {
+  const seen = new Set<string>();
+  const posts: NormalizedPost[] = [];
+
+  for (const query of queries) {
+    const results = await searchPostsForQuery(query);
+    for (const post of results) {
+      const key = post.permalink.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      posts.push(post);
+      if (posts.length >= SEARCH_LIMIT) return posts;
+    }
+  }
+
+  return posts;
+}
+
+async function searchPostsForQuery(query: string): Promise<NormalizedPost[]> {
   const url = new URL('https://www.reddit.com/search.json');
-  url.searchParams.set('q', `"${query}"`);
+  url.searchParams.set('q', query);
   url.searchParams.set('limit', String(SEARCH_LIMIT));
   url.searchParams.set('sort', 'relevance');
   url.searchParams.set('raw_json', '1');
