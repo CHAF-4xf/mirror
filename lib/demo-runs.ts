@@ -83,9 +83,9 @@ export async function listDemoRuns(): Promise<DemoRunListRow[]> {
   });
 }
 
-/** Sidebar list: pinned demos first, then newest completed live runs. */
+/** Sidebar list: pinned demos first, then newest completed live run per company. */
 export async function listSidebarRuns(): Promise<SidebarRun[]> {
-  const [demos, live] = await Promise.all([
+  const [demos, liveRaw] = await Promise.all([
     prisma.run.findMany({
       where: {
         demoSlug: { not: null },
@@ -100,10 +100,19 @@ export async function listSidebarRuns(): Promise<SidebarRun[]> {
         status: 'COMPLETE',
       },
       orderBy: { createdAt: 'desc' },
-      take: 20,
       select: demoRunListSelect,
     }),
   ]);
+
+  const seen = new Set<string>();
+  const live: DemoRunListRow[] = [];
+  for (const run of liveRaw) {
+    const key = run.companyDomain.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    live.push(run);
+    if (live.length >= 20) break;
+  }
 
   return [...sortPinnedDemos(demos), ...live].map((row: DemoRunListRow) =>
     toSidebarRunDTO(row),
