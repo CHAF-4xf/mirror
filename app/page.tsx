@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { CSSProperties, ReactElement } from "react";
+import type { ReactElement } from "react";
 import {
   type DemoRunListRow,
   headlineFindingFromJTBD,
@@ -8,6 +8,7 @@ import {
 import { LANDING_COLORS as COLORS, eyebrowStyle } from "@/lib/landing-theme";
 import type { MemoDTO } from "@/types";
 import { BetaAnalyzeSection } from "./beta-analyze-section";
+import { CoverageBadge } from "./_components/coverage-badge";
 
 const DEMO_SLUG_ORDER = ["rewst-demo", "mangomint-demo", "deputy-demo"] as const;
 
@@ -23,40 +24,6 @@ function sortDemosForLanding<T extends { demoSlug: string | null }>(rows: T[]): 
 }
 
 export const dynamic = "force-dynamic";
-
-const badgeBase: CSSProperties = {
-  padding: "3px 8px",
-  borderRadius: 4,
-  fontSize: 11,
-  letterSpacing: "0.03em",
-  fontWeight: 500,
-};
-
-const moderateLikeBadge: CSSProperties = {
-  ...badgeBase,
-  color: COLORS.green,
-  background: COLORS.greenBg,
-};
-
-const thinBadge: CSSProperties = {
-  ...badgeBase,
-  color: COLORS.amber,
-  background: COLORS.amberBg,
-};
-
-/** Landing badge visuals: STRONG shares MODERATE green treatment. */
-function coverageBadgeStyles(grade: MemoDTO["sourceCoverage"]["coverageGrade"]): {
-  label: string;
-  style: CSSProperties;
-} {
-  if (grade === "THIN") {
-    return { label: "THIN", style: thinBadge };
-  }
-  if (grade === "STRONG") {
-    return { label: "STRONG", style: moderateLikeBadge };
-  }
-  return { label: "MODERATE", style: moderateLikeBadge };
-}
 
 function renderMetadataRow(metadata: string): ReactElement[] {
   const parts = metadata.split(" · ");
@@ -92,7 +59,6 @@ export default async function HomePage() {
           style={{
             fontSize: 36,
             fontWeight: 500,
-            color: COLORS.text,
             lineHeight: 1.2,
             letterSpacing: "-0.02em",
             margin: 0,
@@ -104,7 +70,7 @@ export default async function HomePage() {
         <p
           style={{
             fontSize: 16,
-            color: COLORS.textMuted,
+            color: "var(--ink-2)",
             lineHeight: 1.6,
             maxWidth: 560,
             margin: 0,
@@ -124,7 +90,7 @@ export default async function HomePage() {
           <p
             style={{
               fontSize: 14,
-              color: COLORS.textMuted,
+              color: "var(--ink-2)",
               lineHeight: 1.6,
               margin: 0,
             }}
@@ -142,7 +108,6 @@ export default async function HomePage() {
                 | undefined;
               const grade =
                 memoPartial?.sourceCoverage?.coverageGrade ?? ("THIN" as const);
-              const badge = coverageBadgeStyles(grade);
               const headlineRaw = headlineFindingFromJTBD(
                 memoPartial?.jobToBeDone?.statement,
               );
@@ -160,7 +125,7 @@ export default async function HomePage() {
                   className="mirror-card"
                   style={{
                     background: COLORS.card,
-                    border: `0.5px solid ${COLORS.border}`,
+                    border: `1px solid ${COLORS.border}`,
                     borderRadius: 8,
                     padding: "20px 24px",
                     textDecoration: "none",
@@ -181,17 +146,16 @@ export default async function HomePage() {
                       style={{
                         fontSize: 16,
                         fontWeight: 500,
-                        color: COLORS.text,
                       }}
                     >
                       {company}
                     </span>
-                    <span style={badge.style}>{badge.label}</span>
+                    <CoverageBadge grade={grade} mini />
                   </div>
                   <p
                     style={{
                       fontSize: 14,
-                      color: COLORS.textMuted,
+                      color: "var(--ink-2)",
                       lineHeight: 1.5,
                       margin: "8px 0 12px",
                     }}
@@ -203,7 +167,7 @@ export default async function HomePage() {
                       display: "flex",
                       gap: 16,
                       fontSize: 12,
-                      color: COLORS.textFaint,
+                      color: "var(--muted)",
                     }}
                   >
                     {renderMetadataRow(metaLine)}
@@ -229,7 +193,7 @@ export default async function HomePage() {
         <p
           style={{
             fontSize: 12,
-            color: COLORS.textFaint,
+            color: "var(--muted)",
             lineHeight: 1.5,
             margin: 0,
           }}

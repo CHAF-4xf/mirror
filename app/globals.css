@@ -28,6 +28,7 @@ html, body {
 }
 button { font-family: inherit; cursor: pointer; }
 input, textarea { font-family: inherit; color: inherit; }
+input::placeholder, textarea::placeholder { color: var(--muted-2); opacity: 1; }
 ::selection { background: oklch(85% 0.08 65); color: var(--ink); }
 
 .mono { font-family: var(--mono); font-feature-settings: "ss01"; }
@@ -45,6 +46,10 @@ input, textarea { font-family: inherit; color: inherit; }
 }
 .pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); }
 .hairline { height: 1px; background: var(--line); margin: 0; }
+.mirror-card { transition: border-color 150ms ease, background 150ms ease; }
+.mirror-card:hover { border-color: var(--line-2) !important; background: var(--paper) !important; }
+.mirror-input { transition: border-color 150ms ease, background 150ms ease; }
+.mirror-input:focus { outline: none; border-color: var(--ink-2) !important; background: var(--paper) !important; }
 
 .ghost-btn {
   appearance: none; background: transparent;

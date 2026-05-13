@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { useCallback, useState } from "react";
-import { LANDING_COLORS as COLORS, eyebrowStyle } from "@/lib/landing-theme";
+import { eyebrowStyle } from "@/lib/landing-theme";
 
 type AuthResponse = { ok: true } | { error: string };
 
@@ -59,7 +59,6 @@ export default function GatePage() {
         maxWidth: 720,
         margin: "0 auto",
         padding: "64px 48px",
-        color: COLORS.text,
       }}
     >
       <section style={{ maxWidth: 420 }}>
@@ -68,7 +67,6 @@ export default function GatePage() {
           style={{
             fontSize: 36,
             fontWeight: 500,
-            color: COLORS.text,
             lineHeight: 1.2,
             letterSpacing: "-0.02em",
             margin: 0,
@@ -80,7 +78,7 @@ export default function GatePage() {
         <p
           style={{
             fontSize: 16,
-            color: COLORS.textMuted,
+            color: "var(--ink-2)",
             lineHeight: 1.6,
             margin: "0 0 28px",
           }}
@@ -107,9 +105,8 @@ export default function GatePage() {
                 setError(null);
               }}
               style={{
-                background: COLORS.card,
-                border: `0.5px solid ${COLORS.border}`,
-                color: COLORS.text,
+                background: "var(--paper)",
+                border: "1px solid var(--line-2)",
                 padding: "10px 14px",
                 borderRadius: 8,
                 fontSize: 14,
@@ -120,17 +117,10 @@ export default function GatePage() {
             <button
               type="submit"
               disabled={loading}
+              className="solid-btn"
               style={{
-                background: "#ffffff",
-                color: COLORS.background,
-                padding: "10px 20px",
-                borderRadius: 8,
-                fontSize: 14,
-                fontWeight: 500,
-                border: "none",
                 cursor: loading ? "wait" : "pointer",
                 opacity: loading ? 0.8 : 1,
-                fontFamily: "inherit",
                 whiteSpace: "nowrap",
               }}
             >
@@ -143,7 +133,7 @@ export default function GatePage() {
               role="alert"
               style={{
                 fontSize: 13,
-                color: "#fca5a5",
+                color: "var(--accent)",
                 margin: "0 0 12px",
                 lineHeight: 1.5,
               }}

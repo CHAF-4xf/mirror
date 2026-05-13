@@ -111,9 +111,8 @@ export function BetaAnalyzeSection() {
             }
           }}
           style={{
-            background: COLORS.card,
-            border: `0.5px solid ${COLORS.border}`,
-            color: COLORS.text,
+            background: "var(--paper)",
+            border: "1px solid var(--line-2)",
             padding: "10px 14px",
             borderRadius: 8,
             fontSize: 14,
@@ -124,20 +123,13 @@ export function BetaAnalyzeSection() {
         <button
           type="button"
           disabled={loading}
+          className="solid-btn"
           onClick={() => {
             void onAnalyze();
           }}
           style={{
-            background: "#ffffff",
-            color: COLORS.background,
-            padding: "10px 20px",
-            borderRadius: 8,
-            fontSize: 14,
-            fontWeight: 500,
-            border: "none",
             cursor: loading ? "wait" : "pointer",
             opacity: loading ? 0.8 : 1,
-            fontFamily: "inherit",
             whiteSpace: "nowrap",
           }}
         >
@@ -149,7 +141,7 @@ export function BetaAnalyzeSection() {
           role="alert"
           style={{
             fontSize: 13,
-            color: "#fca5a5",
+            color: "var(--accent)",
             margin: "0 0 12px",
             lineHeight: 1.5,
           }}
@@ -160,7 +152,7 @@ export function BetaAnalyzeSection() {
       <p
         style={{
           fontSize: 12,
-          color: COLORS.textFaint,
+          color: "var(--muted)",
           lineHeight: 1.5,
           margin: 0,
         }}

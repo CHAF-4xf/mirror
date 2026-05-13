@@ -2,23 +2,24 @@ import type { CSSProperties } from "react";
 
 /** Shared palette for landing + beta analyze client section */
 export const LANDING_COLORS = {
-  background: "#0a0a0a",
-  text: "#ffffff",
-  textMuted: "#9ca3af",
-  textFaint: "#6b7280",
-  card: "#141414",
-  border: "#2a2a2a",
-  green: "#1d9e75",
-  greenBg: "rgba(29, 158, 117, 0.1)",
-  amber: "#ba7517",
-  amberBg: "rgba(186, 117, 23, 0.1)",
+  background: "var(--paper)",
+  text: "var(--ink)",
+  textMuted: "var(--ink-2)",
+  textFaint: "var(--muted)",
+  card: "var(--paper-2)",
+  border: "var(--line)",
+  borderStrong: "var(--line-2)",
+  green: "var(--accent-2)",
+  greenBg: "color-mix(in oklch, var(--accent-2) 10%, transparent)",
+  amber: "var(--warn)",
+  amberBg: "color-mix(in oklch, var(--warn) 14%, transparent)",
 } as const;
 
 export const eyebrowStyle: CSSProperties = {
   fontSize: 13,
   textTransform: "uppercase",
   letterSpacing: "0.05em",
-  color: LANDING_COLORS.textFaint,
+  color: "var(--muted)",
   fontWeight: 500,
   margin: 0,
   marginBottom: 16,
