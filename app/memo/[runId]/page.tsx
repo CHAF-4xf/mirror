@@ -6,6 +6,7 @@ import {
   sourceCoverageFromMemoOrAggregate,
 } from '@/lib/demo-runs';
 import { formatMemoHeaderDate } from '@/lib/memo-display';
+import type { MemoDTO } from '@/types';
 import { MemoViewer, type MemoViewerMeta } from './memo-viewer';
 
 export const dynamic = 'force-dynamic';
@@ -30,21 +31,22 @@ export default async function MemoPage(props: PageProps) {
   const { runId } = await props.params;
   const run = await findRunBySlugOrId(runId);
 
-  if (!run || !run.memo?.renderedMarkdown?.trim()) {
+  if (!run || !run.memo?.contentJson) {
     notFound();
   }
 
   const aggregate = await aggregateSourceCoverageForRun(run.id);
   const sc = sourceCoverageFromMemoOrAggregate(run.memo, aggregate);
+  const memo = run.memo.contentJson as unknown as MemoDTO;
 
   const meta: MemoViewerMeta = {
     companyName: run.memo.companyName,
+    companyDomain: run.companyDomain,
     coverageGrade: sc.coverageGrade,
-    themeCount: run._count.themes,
-    sourceCount: sc.totalSources,
     generatedAt: formatMemoHeaderDate(run.memo.generatedAt),
     costUsd: run.totalCostUsd,
+    runtimeSeconds: Math.round(run.totalLatencyMs / 1000),
   };
 
-  return <MemoViewer markdown={run.memo.renderedMarkdown} meta={meta} />;
+  return <MemoViewer memo={memo} meta={meta} />;
 }

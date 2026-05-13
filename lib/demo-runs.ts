@@ -41,6 +41,7 @@ const demoRunListSelect = {
   id: true,
   demoSlug: true,
   url: true,
+  createdAt: true,
   companyDomain: true,
   companyName: true,
   memo: { select: { contentJson: true } },

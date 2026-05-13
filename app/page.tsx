@@ -1,208 +1,261 @@
 import Link from "next/link";
-import type { ReactElement } from "react";
 import {
   type DemoRunListRow,
-  headlineFindingFromJTBD,
   listDemoRuns,
 } from "@/lib/demo-runs";
-import { LANDING_COLORS as COLORS, eyebrowStyle } from "@/lib/landing-theme";
-import type { MemoDTO } from "@/types";
-import { BetaAnalyzeSection } from "./beta-analyze-section";
 import { CoverageBadge } from "./_components/coverage-badge";
-
-const DEMO_SLUG_ORDER = ["rewst-demo", "mangomint-demo", "deputy-demo"] as const;
-
-function sortDemosForLanding<T extends { demoSlug: string | null }>(rows: T[]): T[] {
-  const rank = (slug: string | null): number => {
-    if (!slug) return 999;
-    const i = DEMO_SLUG_ORDER.indexOf(
-      slug as (typeof DEMO_SLUG_ORDER)[number],
-    );
-    return i === -1 ? 500 : i;
-  };
-  return [...rows].sort((a, b) => rank(a.demoSlug) - rank(b.demoSlug));
-}
+import { UrlInput } from "./_components/url-input";
+import type { MemoDTO } from "@/types";
 
 export const dynamic = "force-dynamic";
 
-function renderMetadataRow(metadata: string): ReactElement[] {
-  const parts = metadata.split(" · ");
-  const elements: ReactElement[] = [];
-  parts.forEach((part, i) => {
-    elements.push(<span key={`p-${i}`}>{part}</span>);
-    if (i < parts.length - 1) {
-      elements.push(
-        <span key={`s-${i}`} aria-hidden>
-          ·
-        </span>,
-      );
-    }
-  });
-  return elements;
+function coverageGradeFromRun(row: DemoRunListRow): MemoDTO["sourceCoverage"]["coverageGrade"] {
+  const memoPartial = row.memo?.contentJson as Partial<MemoDTO> | undefined;
+  return memoPartial?.sourceCoverage?.coverageGrade ?? "THIN";
+}
+
+function formatRelativeTime(date: Date): string {
+  const now = new Date();
+  const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const daysAgo = Math.floor(
+    (startToday.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24),
+  );
+
+  if (daysAgo <= 0) return "today";
+  if (daysAgo === 1) return "yesterday";
+  if (daysAgo < 14) return `${daysAgo} days ago`;
+  if (daysAgo < 56) return `${Math.floor(daysAgo / 7)} weeks ago`;
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
 export default async function HomePage() {
-  const demoRows = sortDemosForLanding(await listDemoRuns());
+  const demoRows = await listDemoRuns();
 
   return (
-    <main
+    <div
       style={{
-        maxWidth: 720,
-        margin: "0 auto",
-        padding: "64px 48px",
+        display: "grid",
+        gridTemplateColumns: "minmax(0, 1fr) 320px",
+        minHeight: "calc(100vh - 53px)",
       }}
     >
-      {/* Section 1 — Header */}
-      <header style={{ marginBottom: 56 }}>
-        <p style={eyebrowStyle}>CUSTOMER VOICE MIRROR</p>
+      <main
+        style={{
+          maxWidth: 880,
+          width: "100%",
+          margin: "0 auto",
+          padding: "104px 80px 96px",
+        }}
+      >
+        <div className="micro" style={{ marginBottom: 18 }}>
+          ─── new analysis
+        </div>
+
         <h1
           style={{
-            fontSize: 36,
+            maxWidth: 720,
+            fontFamily: "var(--sans)",
+            fontSize: 56,
             fontWeight: 500,
-            lineHeight: 1.2,
+            lineHeight: 1.05,
             letterSpacing: "-0.02em",
-            margin: 0,
-            marginBottom: 16,
+            margin: "0 0 18px",
           }}
         >
-          What your customers actually say.
-        </h1>
-        <p
-          style={{
-            fontSize: 16,
-            color: "var(--ink-2)",
-            lineHeight: 1.6,
-            maxWidth: 560,
-            margin: 0,
-          }}
-        >
-          An AI pipeline that surfaces patterns in public customer voice across
-          customer stories, Reddit, and third-party reviews. Designed against AI
-          sanitization: verbatim quotes only, falsifiable claims, honest
-          coverage limits.
-        </p>
-      </header>
-
-      {/* Section 2 — Demo cards */}
-      <section style={{ marginBottom: 48 }}>
-        <p style={eyebrowStyle}>EXAMPLE MEMOS · OPENVIEW PORTFOLIO</p>
-        {demoRows.length === 0 ? (
-          <p
+          <span>A structured analyst memo on any B2B SaaS,</span>{" "}
+          <span
+            className="serif"
             style={{
-              fontSize: 14,
+              display: "block",
+              fontSize: 60,
+              fontWeight: 400,
+              fontStyle: "italic",
               color: "var(--ink-2)",
-              lineHeight: 1.6,
-              margin: 0,
+              letterSpacing: "-0.01em",
             }}
           >
+            grounded in their customers&apos; own words.
+          </span>
+        </h1>
+
+        <p
+          style={{
+            color: "var(--muted)",
+            fontSize: 15.5,
+            lineHeight: 1.55,
+            maxWidth: 560,
+            margin: "0 0 38px",
+          }}
+        >
+          Mirror reads customer stories, Reddit threads, and third-party
+          reviews, then writes a memo where every claim is backed by a verbatim
+          quote. Paraphrases are rejected by construction.
+        </p>
+
+        <UrlInput />
+
+        <section
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+            gap: "22px 48px",
+            marginTop: 64,
+            maxWidth: 760,
+          }}
+        >
+          {[
+            {
+              num: "01",
+              title: "Verbatim verification",
+              description:
+                "Every claim cites a quote that exists, exact-text, in the original source.",
+            },
+            {
+              num: "02",
+              title: "The different-company test",
+              description:
+                "Themes that could describe any SaaS company are rejected and rewritten.",
+            },
+            {
+              num: "03",
+              title: "Falsifiable patterns",
+              description:
+                "The dominant pattern names the conditions under which it would be wrong.",
+            },
+            {
+              num: "04",
+              title: "Split findings",
+              description:
+                "When evidence genuinely contradicts itself, Mirror surfaces both sides.",
+            },
+          ].map((pillar) => (
+            <div
+              key={pillar.num}
+              style={{
+                display: "grid",
+                gridTemplateColumns: "32px 1fr",
+                gap: 12,
+              }}
+            >
+              <div
+                className="mono"
+                style={{
+                  color: "var(--muted-2)",
+                  fontSize: 11,
+                  paddingTop: 3,
+                }}
+              >
+                {pillar.num}
+              </div>
+              <div>
+                <div
+                  style={{
+                    fontWeight: 500,
+                    fontSize: 14,
+                    marginBottom: 4,
+                  }}
+                >
+                  {pillar.title}
+                </div>
+                <p
+                  style={{
+                    fontSize: 13,
+                    color: "var(--muted)",
+                    lineHeight: 1.5,
+                    margin: 0,
+                  }}
+                >
+                  {pillar.description}
+                </p>
+              </div>
+            </div>
+          ))}
+        </section>
+      </main>
+
+      <aside
+        style={{
+          borderLeft: "1px solid var(--line)",
+          padding: "28px 24px",
+          background: "var(--paper-2)",
+        }}
+      >
+        <div className="small-caps" style={{ marginBottom: 16 }}>
+          Recent memos
+        </div>
+
+        {demoRows.length === 0 ? (
+          <p style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.5 }}>
             Demo memos not available — check back soon.
           </p>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
             {demoRows.map((row: DemoRunListRow) => {
-              const slug = row.demoSlug;
-              if (!slug) return null;
-
-              const memoPartial = row.memo?.contentJson as
-                | Partial<MemoDTO>
-                | undefined;
-              const grade =
-                memoPartial?.sourceCoverage?.coverageGrade ?? ("THIN" as const);
-              const headlineRaw = headlineFindingFromJTBD(
-                memoPartial?.jobToBeDone?.statement,
-              );
-              const headline =
-                headlineRaw.trim().length === 0 ? "View memo" : headlineRaw;
-
+              const href = `/memo/${row.demoSlug || row.id}`;
               const company = row.companyName ?? "Company";
-              const metaLine =
-                `${row._count.sources} sources · ${row._count.themes} themes · ${row.companyDomain}`;
+              const grade = coverageGradeFromRun(row);
 
               return (
                 <Link
                   key={row.id}
-                  href={`/memo/${slug}`}
-                  className="mirror-card"
+                  href={href}
+                  className="ghost-btn"
                   style={{
-                    background: COLORS.card,
-                    border: `1px solid ${COLORS.border}`,
+                    display: "grid",
+                    gridTemplateColumns: "1fr auto",
+                    gap: 10,
+                    alignItems: "baseline",
+                    padding: "10px 8px",
+                    textAlign: "left",
                     borderRadius: 8,
-                    padding: "20px 24px",
                     textDecoration: "none",
-                    cursor: "pointer",
-                    display: "block",
                     color: "inherit",
                   }}
                 >
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      marginBottom: 8,
-                    }}
-                  >
+                  <span>
                     <span
                       style={{
-                        fontSize: 16,
+                        display: "block",
                         fontWeight: 500,
+                        fontSize: 14,
+                        color: "var(--ink)",
                       }}
                     >
                       {company}
                     </span>
+                    <span
+                      className="mono"
+                      style={{
+                        display: "block",
+                        fontSize: 11,
+                        color: "var(--muted)",
+                        marginTop: 2,
+                      }}
+                    >
+                      {row.companyDomain}
+                    </span>
+                  </span>
+                  <span style={{ textAlign: "right" }}>
                     <CoverageBadge grade={grade} mini />
-                  </div>
-                  <p
-                    style={{
-                      fontSize: 14,
-                      color: "var(--ink-2)",
-                      lineHeight: 1.5,
-                      margin: "8px 0 12px",
-                    }}
-                  >
-                    {headline}
-                  </p>
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: 16,
-                      fontSize: 12,
-                      color: "var(--muted)",
-                    }}
-                  >
-                    {renderMetadataRow(metaLine)}
-                  </div>
+                    <span
+                      className="mono"
+                      style={{
+                        display: "block",
+                        fontSize: 10.5,
+                        color: "var(--muted-2)",
+                        marginTop: 2,
+                      }}
+                    >
+                      {formatRelativeTime(row.createdAt)}
+                    </span>
+                  </span>
                 </Link>
               );
             })}
           </div>
         )}
-      </section>
-
-      {/* Section 3 — Beta URL input */}
-      <BetaAnalyzeSection />
-
-      {/* Section 4 — Footer */}
-      <footer
-        style={{
-          marginTop: 64,
-          paddingTop: 24,
-          borderTop: `0.5px solid ${COLORS.border}`,
-        }}
-      >
-        <p
-          style={{
-            fontSize: 12,
-            color: "var(--muted)",
-            lineHeight: 1.5,
-            margin: 0,
-          }}
-        >
-          Generated memos summarize patterns in public customer voice. They do
-          not interpret strategic implications. The reader draws their own
-          conclusions.
-        </p>
-      </footer>
-    </main>
+      </aside>
+    </div>
   );
 }
