@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { use, useEffect, useMemo, useState } from "react";
-import { LANDING_COLORS as COLORS, eyebrowStyle } from "@/lib/landing-theme";
 
 type PageProps = {
   params: Promise<{ runId: string }>;
@@ -50,24 +49,13 @@ const INITIAL_PAYLOAD: StreamPayload = {
   error: null,
 };
 
-const STATE_STYLES: Record<
-  AgentState,
-  { color: string; background: string; pulse?: boolean }
-> = {
-  PENDING: { color: COLORS.textMuted, background: "rgba(156, 163, 175, 0.1)" },
-  RUNNING: { color: COLORS.amber, background: COLORS.amberBg, pulse: true },
-  COMPLETE: { color: COLORS.green, background: COLORS.greenBg },
-  FAILED: { color: "#dc2626", background: "rgba(220, 38, 38, 0.1)" },
-  SKIPPED: { color: COLORS.textMuted, background: "rgba(156, 163, 175, 0.1)" },
-};
-
 const STAGE_TEXT: Record<RunStatus, string> = {
-  PENDING: "Preparing pipeline...",
-  SCRAPING: "Stage 1 of 4: Scraping public customer voice...",
-  EXTRACTING: "Stage 2 of 4: Extracting themes...",
-  SYNTHESIZING: "Stage 3 of 4: Synthesizing memo structure...",
-  RENDERING: "Stage 4 of 4: Rendering memo...",
-  COMPLETE: "Complete. Opening memo...",
+  PENDING: "Preparing pipeline…",
+  SCRAPING: "Stage 1 of 4: Scraping public customer voice…",
+  EXTRACTING: "Stage 2 of 4: Extracting themes…",
+  SYNTHESIZING: "Stage 3 of 4: Synthesizing memo structure…",
+  RENDERING: "Stage 4 of 4: Rendering memo…",
+  COMPLETE: "Complete. Opening memo…",
   FAILED: "Pipeline failed.",
 };
 
@@ -144,158 +132,241 @@ export default function WatchingPage(props: PageProps) {
     payload.runStatus === "FAILED"
       ? payload.error ?? "Pipeline failed. Check server logs for details."
       : streamError;
+  const showConnectionLost =
+    Boolean(streamError) &&
+    payload.runStatus !== "COMPLETE" &&
+    payload.runStatus !== "FAILED";
+  const domainLabel = (companyDomain ?? runId).toUpperCase();
 
   return (
     <main
       style={{
         maxWidth: 720,
         margin: "0 auto",
-        padding: "64px 48px",
-        color: COLORS.text,
+        padding: "56px 32px 80px",
       }}
     >
-      <style>{`
-        @keyframes mirror-progress-pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.55; }
-        }
-      `}</style>
-      <p
-        style={{
-          ...eyebrowStyle,
-          marginBottom: 16,
-        }}
-      >
-        ANALYZING {companyDomain ?? runId}
-      </p>
+      <div className="micro" style={{ marginBottom: 18 }}>
+        ─── analyzing {domainLabel}
+      </div>
       <h1
         style={{
-          fontSize: 28,
-          fontWeight: 500,
+          font: "500 44px/1.1 var(--sans)",
           letterSpacing: "-0.02em",
-          margin: "0 0 16px",
-          lineHeight: 1.25,
+          margin: "0 0 12px",
         }}
       >
         Pipeline running
       </h1>
-      <p
+      <div
         style={{
-          fontSize: 15,
-          color: COLORS.textMuted,
-          lineHeight: 1.6,
-          margin: "0 0 24px",
+          fontSize: 16,
+          color: "var(--muted)",
+          marginBottom: 48,
+          lineHeight: 1.5,
         }}
       >
         {STAGE_TEXT[payload.runStatus]}
-      </p>
+      </div>
 
       <div
         style={{
-          background: COLORS.card,
-          border: `0.5px solid ${COLORS.border}`,
-          borderRadius: 8,
-          overflow: "hidden",
+          borderTop: "1px solid var(--line)",
+          borderBottom: "1px solid var(--line)",
         }}
       >
         {payload.agents.map(
           (agent: StreamPayload["agents"][number], index: number) => {
-            const badge = STATE_STYLES[agent.state];
             return (
               <div
                 key={agent.name}
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "140px 112px 1fr",
+                  gridTemplateColumns: "32px 1fr auto auto",
                   gap: 16,
                   alignItems: "center",
-                  padding: "16px 20px",
-                  borderTop:
-                    index === 0 ? "none" : `0.5px solid ${COLORS.border}`,
+                  padding: "20px 0",
+                  borderTop: index === 0 ? "none" : "1px solid var(--line)",
                 }}
               >
-                <span
+                <div
+                  className="mono"
                   style={{
-                    fontSize: 14,
-                    fontWeight: 500,
-                    color: COLORS.text,
-                  }}
-                >
-                  {formatAgentName(agent.name)}
-                </span>
-                <span
-                  style={{
-                    justifySelf: "start",
-                    padding: "3px 8px",
-                    borderRadius: 4,
                     fontSize: 11,
-                    letterSpacing: "0.03em",
+                    color: "var(--muted-2)",
                     fontWeight: 500,
-                    color: badge.color,
-                    background: badge.background,
-                    animation: badge.pulse
-                      ? "mirror-progress-pulse 1.4s ease-in-out infinite"
-                      : undefined,
                   }}
                 >
-                  {agent.state}
-                </span>
-                <span
+                  {String(index + 1).padStart(2, "0")}
+                </div>
+
+                <div>
+                  <div
+                    style={{
+                      fontSize: 15,
+                      fontWeight: 500,
+                      color: "var(--ink)",
+                      marginBottom: 4,
+                    }}
+                  >
+                    {formatAgentName(agent.name)}
+                  </div>
+                  <div
+                    className="mono"
+                    style={{
+                      fontSize: 12,
+                      color: "var(--muted)",
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    {agent.message || defaultAgentMessage(agent.state)}
+                  </div>
+                </div>
+
+                <div
+                  className="mono"
                   style={{
-                    fontSize: 13,
-                    color: agent.message ? COLORS.textMuted : COLORS.textFaint,
-                    lineHeight: 1.5,
+                    fontSize: 11,
+                    color: "var(--muted-2)",
+                    minWidth: 80,
+                    textAlign: "right",
                   }}
                 >
-                  {agent.message || defaultAgentMessage(agent.state)}
-                </span>
+                  {agent.state === "COMPLETE" ? (
+                    <>
+                      {(agent.latencyMs / 1_000).toFixed(1)}s · $
+                      {agent.costUsd.toFixed(2)}
+                    </>
+                  ) : null}
+                  {agent.state === "RUNNING" ? (
+                    <span className="pulsing">running</span>
+                  ) : null}
+                </div>
+
+                <StateBadge state={agent.state} />
               </div>
             );
           },
         )}
       </div>
 
-      <p
+      <div
         style={{
+          display: "flex",
+          justifyContent: "space-between",
+          marginTop: 32,
+          padding: "0 4px",
           fontSize: 12,
-          color: COLORS.textFaint,
-          lineHeight: 1.5,
-          margin: "16px 0 0",
+          color: "var(--muted)",
         }}
       >
-        Running total: ${payload.totalCostUsd.toFixed(4)} ·{" "}
-        {formatLatency(payload.totalLatencyMs)}
-      </p>
+        <span className="mono">
+          Running total: ${payload.totalCostUsd.toFixed(4)} ·{" "}
+          {Math.round(payload.totalLatencyMs / 1_000)}s elapsed
+        </span>
+      </div>
 
-      {errorMessage ? (
-        <div style={{ marginTop: 20 }}>
-          <p
-            role="alert"
-            style={{
-              fontSize: 13,
-              color: "#fca5a5",
-              margin: "0 0 12px",
-              lineHeight: 1.5,
-            }}
-          >
-            {errorMessage}
+      {showConnectionLost ? (
+        <div style={{
+          marginTop: 24,
+          padding: "12px 16px",
+          background: "oklch(95% 0.04 80 / 0.6)",
+          border: "0.5px solid oklch(85% 0.06 80)",
+          borderRadius: 8,
+          fontSize: 13,
+          color: "var(--ink-2)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 12,
+        }}>
+          <span>
+            Lost connection to live progress. Pipeline is still running.
+          </span>
+          <button onClick={() => window.location.reload()} className="ghost-btn" style={{ fontSize: 12 }}>
+            Refresh to reconnect →
+          </button>
+        </div>
+      ) : null}
+
+      {payload.runStatus === "FAILED" ? (
+        <div style={{
+          marginTop: 32,
+          padding: "24px 28px",
+          background: "oklch(95% 0.06 30 / 0.4)",
+          border: "1px solid oklch(85% 0.08 30)",
+          borderRadius: 8,
+        }}>
+          <div className="small-caps" style={{
+            color: "var(--accent)",
+            marginBottom: 12,
+          }}>
+            analysis failed
+          </div>
+          <p style={{
+            fontSize: 14,
+            lineHeight: 1.5,
+            color: "var(--ink-2)",
+            margin: "0 0 16px",
+          }}>
+            {errorMessage || "The pipeline encountered an error during analysis."}
           </p>
-          {payload.runStatus === "FAILED" ? (
-            <Link
-              href="/"
-              style={{
-                fontSize: 14,
-                color: COLORS.text,
-                textDecoration: "underline",
-                textUnderlineOffset: 3,
-              }}
-            >
-              Back to home
-            </Link>
-          ) : null}
+          <Link href="/" className="solid-btn" style={{
+            display: "inline-flex",
+            textDecoration: "none",
+          }}>
+            New analysis
+          </Link>
         </div>
       ) : null}
     </main>
+  );
+}
+
+function StateBadge({ state }: { state: AgentState }) {
+  const config = {
+    PENDING: { color: "var(--muted-2)", bg: "var(--paper-2)", label: "pending" },
+    RUNNING: {
+      color: "var(--warn)",
+      bg: "oklch(95% 0.05 80 / 0.5)",
+      label: "running",
+      pulse: true,
+    },
+    COMPLETE: {
+      color: "var(--accent-2)",
+      bg: "oklch(95% 0.04 145 / 0.5)",
+      label: "done",
+    },
+    FAILED: {
+      color: "var(--accent)",
+      bg: "oklch(95% 0.05 30 / 0.5)",
+      label: "failed",
+    },
+    SKIPPED: { color: "var(--muted-2)", bg: "var(--paper-2)", label: "skipped" },
+  }[state];
+
+  return (
+    <span className={`mono ${config.pulse ? "pulsing" : ""}`} style={{
+      display: "inline-flex",
+      alignItems: "center",
+      gap: 6,
+      padding: "4px 10px",
+      borderRadius: 999,
+      background: config.bg,
+      color: config.color,
+      fontSize: 10.5,
+      letterSpacing: "0.04em",
+      fontWeight: 500,
+      textTransform: "uppercase",
+    }}>
+      <span style={{
+        width: 6,
+        height: 6,
+        borderRadius: "50%",
+        background: config.color,
+      }} />
+      {config.label}
+    </span>
   );
 }
 
@@ -308,7 +379,7 @@ function defaultAgentMessage(state: AgentState): string {
     case "PENDING":
       return "Waiting for previous stage.";
     case "RUNNING":
-      return "Working...";
+      return "Working…";
     case "COMPLETE":
       return "Done.";
     case "FAILED":
@@ -316,9 +387,4 @@ function defaultAgentMessage(state: AgentState): string {
     case "SKIPPED":
       return "Skipped.";
   }
-}
-
-function formatLatency(ms: number): string {
-  if (ms < 1_000) return `${ms}ms latency`;
-  return `${(ms / 1_000).toFixed(1)}s latency`;
 }
