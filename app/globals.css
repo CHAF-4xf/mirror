@@ -1,58 +1,78 @@
-@import "tailwindcss";
-
 :root {
-  color-scheme: dark;
+  --paper: oklch(98.2% 0.004 85);
+  --paper-2: oklch(96.5% 0.005 85);
+  --paper-3: oklch(94.5% 0.006 85);
+  --ink: oklch(22% 0.008 70);
+  --ink-2: oklch(38% 0.008 70);
+  --muted: oklch(58% 0.006 70);
+  --muted-2: oklch(72% 0.005 70);
+  --line: oklch(88% 0.006 70);
+  --line-2: oklch(82% 0.008 70);
+  --accent: oklch(52% 0.16 32);
+  --accent-2: oklch(58% 0.13 145);
+  --warn: oklch(70% 0.12 80);
+  --info: oklch(55% 0.10 240);
+  --sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  --serif: var(--font-serif), 'Times New Roman', Georgia, serif;
+  --mono: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
-html,
-body {
-  background: #0a0a0a;
-  color: #ffffff;
-  margin: 0;
-  padding: 0;
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  background: var(--paper); color: var(--ink);
+  font-family: var(--sans);
+  font-feature-settings: "ss01", "ss02", "cv11";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+button { font-family: inherit; cursor: pointer; }
+input, textarea { font-family: inherit; color: inherit; }
+::selection { background: oklch(85% 0.08 65); color: var(--ink); }
+
+.mono { font-family: var(--mono); font-feature-settings: "ss01"; }
+.serif { font-family: var(--serif); }
+.small-caps {
+  text-transform: uppercase; letter-spacing: 0.12em;
+  font-size: 11px; font-weight: 500; color: var(--muted);
+}
+.micro { font-size: 11px; color: var(--muted); font-family: var(--mono); }
+.pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 2px 8px; border: 0.5px solid var(--line-2);
+  border-radius: 999px; font-size: 11px; font-family: var(--mono);
+  color: var(--ink-2); background: var(--paper-2);
+}
+.pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); }
+.hairline { height: 1px; background: var(--line); margin: 0; }
+
+.ghost-btn {
+  appearance: none; background: transparent;
+  border: 1px solid transparent; color: var(--ink-2);
+  font-size: 13px; padding: 6px 10px; border-radius: 8px;
+  cursor: pointer;
+}
+.ghost-btn:hover { background: var(--paper-2); color: var(--ink); }
+.solid-btn {
+  appearance: none; background: var(--ink); color: var(--paper);
+  border: 1px solid var(--ink); font-size: 13px; font-weight: 500;
+  padding: 8px 14px; border-radius: 8px; letter-spacing: -0.005em;
+  cursor: pointer;
+}
+.solid-btn:hover { background: oklch(28% 0.01 70); }
+.solid-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+@keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pulse { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+.fade-up { animation: fadeUp 0.42s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.fade-in { animation: fadeIn 0.35s ease both; }
+.pulsing { animation: pulse 1.4s ease-in-out infinite; }
+.spinner {
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 1.5px solid var(--line-2); border-top-color: var(--ink);
+  animation: spin 0.9s linear infinite;
 }
 
-body {
-  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI",
-    Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  min-height: 100vh;
-}
-
-/* Component-scoped pseudo-class styling — paired with the inline-styled
-   elements in app/page.tsx. Inline styles can't express :hover/:focus, so
-   the spec's hover and focus rules live here. Keep the prefix to avoid
-   accidental collisions with any future Tailwind class. */
-
-.mirror-card {
-  transition: border-color 150ms ease;
-}
-
-.mirror-card:hover {
-  border-color: #3a3a3a !important;
-}
-
-.mirror-input {
-  transition: border-color 150ms ease;
-}
-
-.mirror-input:focus {
-  outline: none;
-  border-color: #3a3a3a !important;
-}
-
-/* Memo viewer: hovers / first-heading margin (inline markdown can't express these). */
-[data-memo-theme="dark"] .memo-back-link:hover {
-  color: #ffffff !important;
-}
-[data-memo-theme="light"] .memo-back-link:hover {
-  color: #000000 !important;
-}
-
-.memo-md-root > h1:first-of-type {
-  margin-top: 0 !important;
-}
-
-[data-memo-theme="dark"] .memo-md-root a:hover,
-[data-memo-theme="light"] .memo-md-root a:hover {
-  text-decoration: underline;
-}
+.ico { width: 14px; height: 14px; flex: none; display: inline-block; vertical-align: -2px; }

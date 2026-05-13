@@ -1,10 +1,27 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Geist, Instrument_Serif, JetBrains_Mono } from "next/font/google";
+import { TopBar } from "./_components/top-bar";
 import "./globals.css";
 
-const inter = Inter({
+const geist = Geist({
   subsets: ["latin"],
-  variable: "--font-inter",
+  weight: ["300", "400", "500", "600"],
+  variable: "--font-sans",
+  display: "swap",
+});
+
+const instrumentSerif = Instrument_Serif({
+  subsets: ["latin"],
+  weight: "400",
+  style: ["italic"],
+  variable: "--font-serif",
+  display: "swap",
+});
+
+const jetBrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-mono",
   display: "swap",
 });
 
@@ -19,9 +36,14 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const fontVariables = `${geist.variable} ${instrumentSerif.variable} ${jetBrainsMono.variable}`;
+
   return (
-    <html lang="en" className={`${inter.variable} antialiased`}>
-      <body>{children}</body>
+    <html lang="en" className={fontVariables}>
+      <body className={fontVariables}>
+        <TopBar />
+        {children}
+      </body>
     </html>
   );
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { type ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
+import type { ReactNode } from 'react';
 import ReactMarkdown from 'react-markdown';
 import type { Components } from 'react-markdown';
 
@@ -18,8 +18,6 @@ export type MemoViewerProps = {
   markdown: string;
   meta: MemoViewerMeta;
 };
-
-const STORAGE_KEY = 'cvm-theme-preference';
 
 const COLORS = {
   green: '#1d9e75',
@@ -69,54 +67,12 @@ function CoverageBadge({
   );
 }
 
-function SunIcon(): ReactNode {
-  return (
-    <svg
-      width={16}
-      height={16}
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden
-    >
-      <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="2" />
-      <path
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"
-      />
-    </svg>
-  );
-}
-
-function MoonIcon(): ReactNode {
-  return (
-    <svg
-      width={16}
-      height={16}
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden
-    >
-      <path
-        d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function markdownComponents(isDark: boolean): Components {
-  const border = isDark ? '#2a2a2a' : '#e5e5e5';
-  const heading = isDark ? '#ffffff' : '#0a0a0a';
-  const paragraph = isDark ? '#d4d4d4' : '#262626';
-  const blockquoteFg = isDark ? '#9ca3af' : '#525252';
-  const inlineCodeBg = isDark ? '#1a1a1a' : '#f5f5f5';
+function markdownComponents(): Components {
+  const border = 'var(--line)';
+  const heading = 'var(--ink)';
+  const paragraph = 'var(--ink-2)';
+  const blockquoteFg = 'var(--muted)';
+  const inlineCodeBg = 'var(--paper-2)';
 
   const headingStyle = (fontSize: number, marginTop: number, marginBottom: number) => ({
     fontSize,
@@ -180,7 +136,7 @@ function markdownComponents(isDark: boolean): Components {
     a: ({ children, ...props }) => (
       <a
         {...props}
-        style={{ color: '#0ea5e9', textDecoration: 'none' }}
+        style={{ color: 'var(--info)', textDecoration: 'none' }}
       >
         {children}
       </a>
@@ -238,56 +194,21 @@ function markdownComponents(isDark: boolean): Components {
 }
 
 export function MemoViewer({ markdown, meta }: MemoViewerProps) {
-  const [mode, setMode] = useState<'dark' | 'light'>('dark');
-  const [hydrated, setHydrated] = useState(false);
-
-  useEffect(() => {
-    setHydrated(true);
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored === 'light' || stored === 'dark') {
-        setMode(stored);
-      }
-    } catch {
-      /* ignore */
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!hydrated) return;
-    try {
-      localStorage.setItem(STORAGE_KEY, mode);
-    } catch {
-      /* ignore */
-    }
-  }, [mode, hydrated]);
-
-  const isDark = mode === 'dark';
-  const bg = isDark ? '#0a0a0a' : '#fafafa';
-  const border = isDark ? '#2a2a2a' : '#e5e5e5';
-  const backColor = isDark ? '#9ca3af' : '#6b7280';
-  const headingColor = isDark ? '#ffffff' : '#0a0a0a';
-  const subtextColor = isDark ? '#9ca3af' : '#6b7280';
-  const metaValueColor = isDark ? '#ffffff' : '#0a0a0a';
-  const toggleIconColor = isDark ? '#ffffff' : '#0a0a0a';
-
-  const components = useMemo(() => markdownComponents(isDark), [isDark]);
-
-  const toggleTheme = useCallback(() => {
-    setMode((m) => (m === 'dark' ? 'light' : 'dark'));
-  }, []);
-
+  const border = 'var(--line)';
+  const backColor = 'var(--muted)';
+  const headingColor = 'var(--ink)';
+  const subtextColor = 'var(--muted)';
+  const metaValueColor = 'var(--ink)';
+  const components = markdownComponents();
   const costFormatted = `$${meta.costUsd.toFixed(2)}`;
 
   return (
     <div
-      data-memo-theme={mode}
       style={{
-        background: bg,
+        background: 'var(--paper)',
         minHeight: '100vh',
         color: headingColor,
         fontFamily: 'inherit',
-        transition: 'background 0.15s ease',
       }}
     >
       <main
@@ -319,26 +240,6 @@ export function MemoViewer({ markdown, meta }: MemoViewerProps) {
           >
             ← Back to all memos
           </Link>
-          <button
-            type="button"
-            onClick={toggleTheme}
-            aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-            style={{
-              width: 32,
-              height: 32,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'transparent',
-              border: `0.5px solid ${border}`,
-              borderRadius: 8,
-              cursor: 'pointer',
-              padding: 0,
-              color: toggleIconColor,
-            }}
-          >
-            {isDark ? <SunIcon /> : <MoonIcon />}
-          </button>
         </nav>
 
         {/* Section 2 — Memo header */}
