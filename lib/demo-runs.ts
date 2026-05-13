@@ -54,6 +54,23 @@ export type DemoRunListRow = Prisma.RunGetPayload<{
   select: typeof demoRunListSelect;
 }>;
 
+export type SidebarRun = DemoRunListRow;
+
+const DEMO_SLUG_ORDER = ['rewst-demo', 'mangomint-demo', 'deputy-demo'] as const;
+
+function sortPinnedDemos(rows: DemoRunListRow[]): DemoRunListRow[] {
+  const rank = (slug: string | null): number => {
+    if (!slug) return 999;
+    const i = DEMO_SLUG_ORDER.indexOf(slug as (typeof DEMO_SLUG_ORDER)[number]);
+    return i === -1 ? 500 : i;
+  };
+  return [...rows].sort((a: DemoRunListRow, b: DemoRunListRow) => rank(a.demoSlug) - rank(b.demoSlug));
+}
+
+function toSidebarRunDTO(row: DemoRunListRow): SidebarRun {
+  return row;
+}
+
 /** Landing list: COMPLETE runs with demoSlug, newest first. */
 export async function listDemoRuns(): Promise<DemoRunListRow[]> {
   return prisma.run.findMany({
@@ -64,6 +81,33 @@ export async function listDemoRuns(): Promise<DemoRunListRow[]> {
     orderBy: { createdAt: 'desc' },
     select: demoRunListSelect,
   });
+}
+
+/** Sidebar list: pinned demos first, then newest completed live runs. */
+export async function listSidebarRuns(): Promise<SidebarRun[]> {
+  const [demos, live] = await Promise.all([
+    prisma.run.findMany({
+      where: {
+        demoSlug: { not: null },
+        status: 'COMPLETE',
+      },
+      orderBy: { createdAt: 'desc' },
+      select: demoRunListSelect,
+    }),
+    prisma.run.findMany({
+      where: {
+        demoSlug: null,
+        status: 'COMPLETE',
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+      select: demoRunListSelect,
+    }),
+  ]);
+
+  return [...sortPinnedDemos(demos), ...live].map((row: DemoRunListRow) =>
+    toSidebarRunDTO(row),
+  );
 }
 
 export async function aggregateSourceCoverageForRun(runId: string): Promise<{

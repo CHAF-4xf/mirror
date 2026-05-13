@@ -1,7 +1,7 @@
 import Link from "next/link";
 import {
-  type DemoRunListRow,
-  listDemoRuns,
+  type SidebarRun,
+  listSidebarRuns,
 } from "@/lib/demo-runs";
 import { CoverageBadge } from "./_components/coverage-badge";
 import { UrlInput } from "./_components/url-input";
@@ -9,7 +9,7 @@ import type { MemoDTO } from "@/types";
 
 export const dynamic = "force-dynamic";
 
-function coverageGradeFromRun(row: DemoRunListRow): MemoDTO["sourceCoverage"]["coverageGrade"] {
+function coverageGradeFromRun(row: SidebarRun): MemoDTO["sourceCoverage"]["coverageGrade"] {
   const memoPartial = row.memo?.contentJson as Partial<MemoDTO> | undefined;
   return memoPartial?.sourceCoverage?.coverageGrade ?? "THIN";
 }
@@ -30,7 +30,7 @@ function formatRelativeTime(date: Date): string {
 }
 
 export default async function HomePage() {
-  const demoRows = await listDemoRuns();
+  const sidebarRuns = await listSidebarRuns();
 
   return (
     <div
@@ -179,19 +179,32 @@ export default async function HomePage() {
           borderLeft: "1px solid var(--line)",
           padding: "28px 24px",
           background: "var(--paper-2)",
+          maxHeight: "calc(100vh - 200px)",
+          overflowY: "auto",
+          alignSelf: "start",
         }}
       >
-        <div className="small-caps" style={{ marginBottom: 16 }}>
+        <div
+          className="small-caps"
+          style={{
+            marginBottom: 16,
+            position: "sticky",
+            top: 0,
+            zIndex: 1,
+            background: "var(--paper-2)",
+            paddingBottom: 8,
+          }}
+        >
           Recent memos
         </div>
 
-        {demoRows.length === 0 ? (
+        {sidebarRuns.length === 0 ? (
           <p style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.5 }}>
             Demo memos not available — check back soon.
           </p>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            {demoRows.map((row: DemoRunListRow) => {
+            {sidebarRuns.map((row: SidebarRun) => {
               const href = `/memo/${row.demoSlug || row.id}`;
               const company = row.companyName ?? "Company";
               const grade = coverageGradeFromRun(row);
