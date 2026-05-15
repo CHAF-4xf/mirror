@@ -5,6 +5,7 @@
 // scrapeCustomerStories() below, after neutralizeSandboxPlaywrightPath() runs.
 import type { Browser, Page } from 'playwright';
 import type { SourceDTO, SourceMetadata } from '@/types';
+import { withTimeout } from './with-timeout';
 
 const CANDIDATE_PATHS = [
   '/customers',
@@ -23,6 +24,7 @@ const PAGE_TIMEOUT_MS = 30_000;
 const MAX_STORY_PAGES_TO_FOLLOW = 12;
 const MIN_QUOTE_LENGTH = 40;
 const LOG_PREFIX = '[scrape:customer-stories]';
+const OUTER_TIMEOUT_MS = 90_000;
 const DESKTOP_UA =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 13_6) AppleWebKit/537.36 ' +
   '(KHTML, like Gecko) Chrome/124.0 Safari/537.36';
@@ -45,6 +47,19 @@ export async function scrapeCustomerStories(
     return [];
   }
 
+  return withTimeout(
+    () => scrapeCustomerStoriesBody(base, temporaryRefPrefix),
+    OUTER_TIMEOUT_MS,
+    [],
+    LOG_PREFIX,
+    `scrapeCustomerStories(${companyUrl})`,
+  );
+}
+
+async function scrapeCustomerStoriesBody(
+  base: string,
+  temporaryRefPrefix: string,
+): Promise<SourceDTO[]> {
   neutralizeSandboxPlaywrightPath();
 
   // Deferred dynamic import: see note at top of file. Loading playwright here

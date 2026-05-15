@@ -4,6 +4,7 @@ import type {
   SourceReliability,
   SourceType,
 } from '@/types';
+import { withTimeout } from './with-timeout';
 
 const LOG_PREFIX = '[scrape:third-party]';
 const BRAVE_ENDPOINT = 'https://api.search.brave.com/res/v1/web/search';
@@ -15,6 +16,7 @@ const MAX_RESULTS = 25;
 const REQUEST_TIMEOUT_MS = 15_000;
 const MAX_RETRIES_ON_429 = 2;
 const RETRY_BACKOFF_MS = 5_000;
+const OUTER_TIMEOUT_MS = 60_000;
 
 // Design pattern: scrape-time filtering vs extract-time filtering.
 //
@@ -119,6 +121,21 @@ export async function scrapeThirdPartyReviews(
     return [];
   }
 
+  return withTimeout(
+    () =>
+      scrapeThirdPartyReviewsQueries(company, temporaryRefPrefix, apiKey),
+    OUTER_TIMEOUT_MS,
+    [],
+    LOG_PREFIX,
+    `scrapeThirdPartyReviews(${companyName})`,
+  );
+}
+
+async function scrapeThirdPartyReviewsQueries(
+  company: string,
+  temporaryRefPrefix: string,
+  apiKey: string,
+): Promise<SourceDTO[]> {
   const queries = [
     `"${company}" reviews`,
     `"${company}" alternatives`,

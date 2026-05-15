@@ -82,14 +82,14 @@ export async function runPipeline(runId: string): Promise<void> {
         scrapeThirdPartyReviews(companyName, refPrefixes.review),
       ]);
       const all = [...stories, ...reddit, ...thirdParty];
-      if (all.length === 0) {
-        throw new Error('All three scrapers returned zero sources');
-      }
+      const scrapeMessage =
+        all.length === 0
+          ? 'Scraped 0 sources across customer stories, Reddit, and third-party search; proceeding with thin corpus'
+          : `Scraped ${all.length} source(s): ` +
+            `${stories.length} stories, ${reddit.length} reddit, ${thirdParty.length} reviews`;
       return {
         result: all,
-        message:
-          `Scraped ${all.length} source(s): ` +
-          `${stories.length} stories, ${reddit.length} reddit, ${thirdParty.length} reviews`,
+        message: scrapeMessage,
         costUsd: 0,
       };
     });

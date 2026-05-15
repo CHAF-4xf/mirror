@@ -1,4 +1,5 @@
 import type { SourceDTO, SourceMetadata } from '@/types';
+import { withTimeout } from './with-timeout';
 
 const LOG_PREFIX = '[scrape:reddit]';
 const USER_AGENT =
@@ -26,6 +27,7 @@ const POLITE_DELAY_MS = 250;
 const MAX_RETRIES_ON_429 = 2;
 const RETRY_BACKOFF_MS = 5_000;
 const REQUEST_TIMEOUT_MS = 15_000;
+const OUTER_TIMEOUT_MS = 60_000;
 
 interface RedditListing<T> {
   kind: 'Listing';
@@ -93,6 +95,19 @@ export async function scrapeReddit(
     return [];
   }
 
+  return withTimeout(
+    () => scrapeRedditBody(trimmed, temporaryRefPrefix),
+    OUTER_TIMEOUT_MS,
+    [],
+    LOG_PREFIX,
+    `scrapeReddit(${companyName})`,
+  );
+}
+
+async function scrapeRedditBody(
+  trimmed: string,
+  temporaryRefPrefix: string,
+): Promise<SourceDTO[]> {
   let posts: NormalizedPost[] = [];
   try {
     const queries = [
