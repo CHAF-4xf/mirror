@@ -30,7 +30,12 @@ function formatRelativeTime(date: Date): string {
 }
 
 export default async function HomePage() {
-  const sidebarRuns = await listSidebarRuns();
+  let sidebarRuns: SidebarRun[] = [];
+  try {
+    sidebarRuns = await listSidebarRuns();
+  } catch (err) {
+    console.error("[HomePage] listSidebarRuns failed:", err);
+  }
 
   return (
     <div
