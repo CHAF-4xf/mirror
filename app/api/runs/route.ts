@@ -13,28 +13,39 @@ import {
 } from '@/lib/run-url';
 
 export async function GET() {
-  const rows = await listDemoRuns();
+  try {
+    const rows = await listDemoRuns();
 
-  const runs = rows.map((r: DemoRunListRow) => {
-    const memoJson = r.memo?.contentJson as Partial<MemoDTO> | undefined;
-    const headlineFinding = headlineFindingFromJTBD(
-      memoJson?.jobToBeDone?.statement,
+    const runs = rows.map((r: DemoRunListRow) => {
+      const memoJson = r.memo?.contentJson as Partial<MemoDTO> | undefined;
+      const headlineFinding = headlineFindingFromJTBD(
+        memoJson?.jobToBeDone?.statement,
+      );
+      const coverageGrade =
+        memoJson?.sourceCoverage?.coverageGrade ?? ('THIN' as const);
+
+      return {
+        id: r.id,
+        demoSlug: r.demoSlug,
+        companyName: r.companyName,
+        sourceCount: r._count.sources,
+        themeCount: r._count.themes,
+        coverageGrade,
+        headlineFinding,
+      };
+    });
+
+    return NextResponse.json({ runs });
+  } catch (err) {
+    console.error('[GET /api/runs] failed:', err);
+    return NextResponse.json(
+      {
+        error:
+          'Database unavailable. Check DATABASE_URL / DIRECT_URL in Vercel env vars.',
+      },
+      { status: 503 },
     );
-    const coverageGrade =
-      memoJson?.sourceCoverage?.coverageGrade ?? ('THIN' as const);
-
-    return {
-      id: r.id,
-      demoSlug: r.demoSlug,
-      companyName: r.companyName,
-      sourceCount: r._count.sources,
-      themeCount: r._count.themes,
-      coverageGrade,
-      headlineFinding,
-    };
-  });
-
-  return NextResponse.json({ runs });
+  }
 }
 
 export async function POST(request: Request) {
@@ -67,15 +78,27 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: COMPANY_URL_VALIDATION_ERROR }, { status: 400 });
   }
 
-  const run = await prisma.run.create({
-    data: {
-      url: parsed.url,
-      companyDomain: parsed.companyDomain,
-      companyName: null,
-      status: 'PENDING',
-    },
-    select: { id: true, status: true },
-  });
+  let run: { id: string; status: string };
+  try {
+    run = await prisma.run.create({
+      data: {
+        url: parsed.url,
+        companyDomain: parsed.companyDomain,
+        companyName: null,
+        status: 'PENDING',
+      },
+      select: { id: true, status: true },
+    });
+  } catch (err) {
+    console.error('[POST /api/runs] create failed:', err);
+    return NextResponse.json(
+      {
+        error:
+          'Database unavailable. Check DATABASE_URL / DIRECT_URL in Vercel env vars.',
+      },
+      { status: 503 },
+    );
+  }
 
   void runPipeline(run.id).catch((err) => {
     console.error(`[POST /api/runs] runPipeline(${run.id}) failed:`, err);
