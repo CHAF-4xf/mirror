@@ -7,6 +7,7 @@ import {
 } from '@/lib/demo-runs';
 import { runPipeline } from '@/lib/orchestrator';
 import { prisma } from '@/lib/prisma';
+import { databaseUnavailableMessage } from '@/lib/db-error';
 import {
   COMPANY_URL_VALIDATION_ERROR,
   normalizeRunUrlInput,
@@ -39,10 +40,7 @@ export async function GET() {
   } catch (err) {
     console.error('[GET /api/runs] failed:', err);
     return NextResponse.json(
-      {
-        error:
-          'Database unavailable. Check DATABASE_URL / DIRECT_URL in Vercel env vars.',
-      },
+      { error: databaseUnavailableMessage(err) },
       { status: 503 },
     );
   }
@@ -92,10 +90,7 @@ export async function POST(request: Request) {
   } catch (err) {
     console.error('[POST /api/runs] create failed:', err);
     return NextResponse.json(
-      {
-        error:
-          'Database unavailable. Check DATABASE_URL / DIRECT_URL in Vercel env vars.',
-      },
+      { error: databaseUnavailableMessage(err) },
       { status: 503 },
     );
   }
